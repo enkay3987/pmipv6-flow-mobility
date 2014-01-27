@@ -1,0 +1,22 @@
+# Ignore build directory
+build/
+# Ignore Debug directory
+Debug/
+# Ignore testpy-output directory
+./testpy-ouput/
+
+# Ignore backup files
+*~
+# Ignore pcap files
+*.pcap
+
+# Ignore all hidden files
+.*
+#except
+!.gitignore
+!.gitkeep
+!utils/.ns3rc
+!doc/tutorial/source/_static/.hidden
+!doc/tutorial-pt-br/source/_static/.hidden
+!doc/models/source/_static/.hidden
+!doc/manual/source/_static/.hidden
