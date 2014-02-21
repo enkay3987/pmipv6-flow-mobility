@@ -24,6 +24,7 @@
 #include <ns3/object.h>
 #include <ns3/epc-s1ap-sap.h>
 #include <ns3/epc-s11-sap.h>
+#include <ns3/ipv6-address.h>
 
 #include <map>
 #include <list>
@@ -87,7 +88,7 @@ public:
    * \param ecgi E-UTRAN Cell Global ID, the unique identifier of the eNodeB
    * \param enbS1apSap the ENB side of the S1-AP SAP 
    */
-  void AddEnb (uint16_t ecgi, Ipv4Address enbS1UAddr, EpcS1apSapEnb* enbS1apSap);
+  void AddEnb (uint16_t ecgi, Ipv6Address enbS1UAddr, EpcS1apSapEnb* enbS1apSap);
   
   /** 
    * Add a new UE to the MME. This is the equivalent of storing the UE
@@ -159,7 +160,7 @@ private:
   struct EnbInfo : public SimpleRefCount<EnbInfo>
   {
     uint16_t gci;
-    Ipv4Address s1uAddr;
+    Ipv6Address s1uAddr;
     EpcS1apSapEnb* s1apSapEnb;
   };
 

@@ -30,7 +30,7 @@
 #include "epc-tft.h"
 #include "ns3/log.h"
 #include "ns3/packet.h"
-#include "ns3/ipv4-header.h"
+#include "ns3/ipv6-header.h"
 #include "ns3/udp-header.h"
 #include "ns3/tcp-header.h"
 #include "ns3/udp-l4-protocol.h"
@@ -71,28 +71,28 @@ EpcTftClassifier::Classify (Ptr<Packet> p, EpcTft::Direction direction)
 
   Ptr<Packet> pCopy = p->Copy ();
 
-  Ipv4Header ipv4Header;
-  pCopy->RemoveHeader (ipv4Header);
+  Ipv6Header ipv6Header;
+  pCopy->RemoveHeader (ipv6Header);
 
-  Ipv4Address localAddress;
-  Ipv4Address remoteAddress;
+  Ipv6Address localAddress;
+  Ipv6Address remoteAddress;
 
   
   if (direction ==  EpcTft::UPLINK)
     {
-      localAddress = ipv4Header.GetSource ();
-      remoteAddress = ipv4Header.GetDestination ();
+      localAddress = ipv6Header.GetSourceAddress ();
+      remoteAddress = ipv6Header.GetDestinationAddress ();
     }
   else
     { 
       NS_ASSERT (direction ==  EpcTft::DOWNLINK);
-      remoteAddress = ipv4Header.GetSource ();
-      localAddress = ipv4Header.GetDestination ();      
+      remoteAddress = ipv6Header.GetSourceAddress ();
+      localAddress = ipv6Header.GetDestinationAddress ();
     }
   
-  uint8_t protocol = ipv4Header.GetProtocol ();
+  uint8_t protocol = ipv6Header.GetNextHeader ();
 
-  uint8_t tos = ipv4Header.GetTos ();
+  uint8_t tos = 0;
 
   uint16_t localPort = 0;
   uint16_t remotePort = 0;

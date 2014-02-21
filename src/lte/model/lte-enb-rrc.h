@@ -131,7 +131,7 @@ public:
    * \param transportLayerAddress  IP Address of the SGW, see 36.423 9.2.1
    * 
    */
-  void SetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint32_t gtpTeid, Ipv4Address transportLayerAddress);
+  void SetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint32_t gtpTeid, Ipv6Address transportLayerAddress);
 
   /** 
    * Start all configured data radio bearers. It is safe to call this

@@ -40,7 +40,7 @@
 #include <ns3/ff-mac-scheduler.h>
 #include <ns3/lte-handover-algorithm.h>
 #include <ns3/lte-anr.h>
-#include <ns3/ipv4-l3-protocol.h>
+#include <ns3/ipv6-l3-protocol.h>
 #include <ns3/abort.h>
 #include <ns3/log.h>
 
@@ -334,7 +334,7 @@ bool
 LteEnbNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolNumber)
 {
   NS_LOG_FUNCTION (this << packet   << dest << protocolNumber);
-  NS_ASSERT_MSG (protocolNumber == Ipv4L3Protocol::PROT_NUMBER, "unsupported protocol " << protocolNumber << ", only IPv4 is supported");
+  NS_ASSERT_MSG (protocolNumber == Ipv6L3Protocol::PROT_NUMBER, "unsupported protocol " << protocolNumber << ", only IPv6 is supported");
   return m_rrc->SendData (packet);
 }
 

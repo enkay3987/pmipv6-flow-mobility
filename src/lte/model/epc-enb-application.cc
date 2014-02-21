@@ -23,7 +23,7 @@
 #include "epc-enb-application.h"
 #include "ns3/log.h"
 #include "ns3/mac48-address.h"
-#include "ns3/ipv4.h"
+#include "ns3/ipv6.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/uinteger.h"
 
@@ -79,7 +79,7 @@ EpcEnbApplication::DoDispose (void)
 }
 
 
-EpcEnbApplication::EpcEnbApplication (Ptr<Socket> lteSocket, Ptr<Socket> s1uSocket, Ipv4Address enbS1uAddress, Ipv4Address sgwS1uAddress, uint16_t cellId)
+EpcEnbApplication::EpcEnbApplication (Ptr<Socket> lteSocket, Ptr<Socket> s1uSocket, Ipv6Address enbS1uAddress, Ipv6Address sgwS1uAddress, uint16_t cellId)
   : m_lteSocket (lteSocket),
     m_s1uSocket (s1uSocket),    
     m_enbS1uAddress (enbS1uAddress),
@@ -311,7 +311,7 @@ EpcEnbApplication::SendToS1uSocket (Ptr<Packet> packet, uint32_t teid)
   gtpu.SetLength (packet->GetSize () + gtpu.GetSerializedSize () - 8);  
   packet->AddHeader (gtpu);
   uint32_t flags = 0;
-  m_s1uSocket->SendTo (packet, flags, InetSocketAddress(m_sgwS1uAddress, m_gtpuUdpPort));
+  m_s1uSocket->SendTo (packet, flags, Inet6SocketAddress(m_sgwS1uAddress, m_gtpuUdpPort));
 }
 
 

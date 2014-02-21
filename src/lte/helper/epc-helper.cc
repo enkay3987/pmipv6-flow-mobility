@@ -23,7 +23,7 @@
 #include <ns3/epc-helper.h>
 #include <ns3/log.h>
 #include <ns3/node.h>
-#include <ns3/ipv4-address.h>
+#include <ns3/ipv6-address.h>
 
 namespace ns3 {
 

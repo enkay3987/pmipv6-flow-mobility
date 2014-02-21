@@ -20,6 +20,7 @@
 
 #include "ns3/log.h"
 #include "ns3/epc-x2-header.h"
+#include "ns3/address-utils.h"
 
 
 NS_LOG_COMPONENT_DEFINE ("EpcX2Header");
@@ -235,7 +236,7 @@ EpcX2HandoverRequestHeader::Serialize (Buffer::Iterator start) const
       i.WriteU8 (m_erabsToBeSetupList [j].erabLevelQosParameters.arp.preemptionCapability);
       i.WriteU8 (m_erabsToBeSetupList [j].erabLevelQosParameters.arp.preemptionVulnerability);
       i.WriteU8 (m_erabsToBeSetupList [j].dlForwarding);
-      i.WriteHtonU32 (m_erabsToBeSetupList [j].transportLayerAddress.Get ());
+      WriteTo (i, m_erabsToBeSetupList [j].transportLayerAddress);
       i.WriteHtonU32 (m_erabsToBeSetupList [j].gtpTeid);
     }
 
@@ -296,7 +297,7 @@ EpcX2HandoverRequestHeader::Deserialize (Buffer::Iterator start)
       erabItem.erabLevelQosParameters.arp.preemptionVulnerability = i.ReadU8 ();
 
       erabItem.dlForwarding = i.ReadU8 ();
-      erabItem.transportLayerAddress = Ipv4Address (i.ReadNtohU32 ());
+      ReadFrom (i, erabItem.transportLayerAddress);
       erabItem.gtpTeid = i.ReadNtohU32 ();
 
       m_erabsToBeSetupList.push_back (erabItem);

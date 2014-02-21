@@ -67,7 +67,7 @@ public:
   struct ErabSetupItem
   {
     uint16_t    erabId;
-    Ipv4Address enbTransportLayerAddress;
+    Ipv6Address enbTransportLayerAddress;
     uint32_t    enbTeid;    
   };
 
@@ -91,7 +91,7 @@ public:
   struct ErabSwitchedInDownlinkItem
   {
     uint16_t    erabId;
-    Ipv4Address enbTransportLayerAddress;
+    Ipv6Address enbTransportLayerAddress;
     uint32_t    enbTeid;    
   };
 
@@ -119,7 +119,7 @@ public:
   {
     uint8_t    erabId;
     EpsBearer   erabLevelQosParameters;
-    Ipv4Address transportLayerAddress;
+    Ipv6Address transportLayerAddress;
     uint32_t    sgwTeid;    
   };
 
@@ -143,7 +143,7 @@ public:
   struct ErabSwitchedInUplinkItem
   {
     uint8_t    erabId;
-    Ipv4Address transportLayerAddress;
+    Ipv6Address transportLayerAddress;
     uint32_t    enbTeid;    
   };
 

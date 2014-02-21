@@ -24,11 +24,13 @@
 #define POINT_TO_POINT_EPC_HELPER_H
 
 #include <ns3/object.h>
-#include <ns3/ipv4-address-helper.h>
+#include <ns3/ipv6-address-helper.h>
 #include <ns3/data-rate.h>
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
 #include <ns3/epc-helper.h>
+
+#include <map>
 
 namespace ns3 {
 
@@ -71,8 +73,8 @@ public:
   virtual void AddX2Interface (Ptr<Node> enbNode1, Ptr<Node> enbNode2);
   virtual void ActivateEpsBearer (Ptr<NetDevice> ueLteDevice, uint64_t imsi, Ptr<EpcTft> tft, EpsBearer bearer);
   virtual Ptr<Node> GetPgwNode ();
-  virtual Ipv4InterfaceContainer AssignUeIpv4Address (NetDeviceContainer ueDevices);
-  virtual Ipv4Address GetUeDefaultGatewayAddress ();
+  virtual Ipv6InterfaceContainer AssignUeIpv6Address (NetDeviceContainer ueDevices);
+  virtual Ipv6Address GetUeDefaultGatewayAddress ();
 
 
 
@@ -85,7 +87,7 @@ private:
   /** 
    * helper to assign addresses to UE devices as well as to the TUN device of the SGW/PGW
    */
-  Ipv4AddressHelper m_ueAddressHelper; 
+  Ipv6AddressHelper m_ueAddressHelper;
   
   Ptr<Node> m_sgwPgw; 
   Ptr<EpcSgwPgwApplication> m_sgwPgwApp;
@@ -99,7 +101,7 @@ private:
   /** 
    * helper to assign addresses to S1-U NetDevices 
    */
-  Ipv4AddressHelper m_s1uIpv4AddressHelper; 
+  Ipv6AddressHelper m_s1uIpv6AddressHelper;
 
   DataRate m_s1uLinkDataRate;
   Time     m_s1uLinkDelay;
@@ -119,7 +121,7 @@ private:
   /** 
    * helper to assign addresses to X2 NetDevices 
    */
-  Ipv4AddressHelper m_x2Ipv4AddressHelper;   
+  Ipv6AddressHelper m_x2Ipv6AddressHelper;
 
   DataRate m_x2LinkDataRate;
   Time     m_x2LinkDelay;

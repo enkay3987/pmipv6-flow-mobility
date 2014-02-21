@@ -24,7 +24,7 @@
 #define EPC_HELPER_H
 
 #include <ns3/object.h>
-#include <ns3/ipv4-address-helper.h>
+#include <ns3/ipv6-address-helper.h>
 #include <ns3/data-rate.h>
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
@@ -95,7 +95,7 @@ public:
    * 
    * 
    * 
-   * \param ueLteDevice the Ipv4-enabled device of the UE, normally
+   * \param ueLteDevice the Ipv6-enabled device of the UE, normally
    * connected via the LTE radio interface
    * \param imsi the unique identifier of the UE
    * \param tft the Traffic Flow Template of the new bearer
@@ -115,20 +115,20 @@ public:
   virtual Ptr<Node> GetPgwNode () = 0;
 
   /** 
-   * Assign IPv4 addresses to UE devices
+   * Assign IPv6 addresses to UE devices
    * 
    * \param ueDevices the set of UE devices
    * 
-   * \return the interface container, \see Ipv4AddressHelper::Assign() which has similar semantics
+   * \return the interface container, \see Ipv6AddressHelper::Assign() which has similar semantics
    */
-  virtual Ipv4InterfaceContainer AssignUeIpv4Address (NetDeviceContainer ueDevices) = 0;
+  virtual Ipv6InterfaceContainer AssignUeIpv6Address (NetDeviceContainer ueDevices) = 0;
 
 
   /** 
    * 
    * \return the address of the Default Gateway to be used by UEs to reach the internet
    */
-  virtual Ipv4Address GetUeDefaultGatewayAddress () = 0;
+  virtual Ipv6Address GetUeDefaultGatewayAddress () = 0;
 
 
 };

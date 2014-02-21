@@ -109,7 +109,7 @@ public:
    * \param enbS1uAddress the address of the eNB
    * \param teid the Tunnel Enpoint IDentifier
    */
-  void SendToS1uSocket (Ptr<Packet> packet, Ipv4Address enbS1uAddress, uint32_t teid);
+  void SendToS1uSocket (Ptr<Packet> packet, Ipv6Address enbS1uAddress, uint32_t teid);
   
 
   /** 
@@ -133,7 +133,7 @@ public:
    * \param enbAddr the address of the eNB
    * \param sgwAddr the address of the SGW
    */
-  void AddEnb (uint16_t cellId, Ipv4Address enbAddr, Ipv4Address sgwAddr);
+  void AddEnb (uint16_t cellId, Ipv6Address enbAddr, Ipv6Address sgwAddr);
 
   /** 
    * Let the SGW be aware of a new UE
@@ -146,9 +146,9 @@ public:
    * set the address of a previously added UE
    * 
    * \param imsi the unique identifier of the UE
-   * \param ueAddr the IPv4 address of the UE
+   * \param ueAddr the IPv6 address of the UE
    */
-  void SetUeAddress (uint64_t imsi, Ipv4Address ueAddr);
+  void SetUeAddress (uint64_t imsi, Ipv6Address ueAddr);
 
 private:
 
@@ -186,32 +186,32 @@ private:
     /** 
      * \return the address of the eNB to which the UE is connected
      */
-    Ipv4Address GetEnbAddr ();
+    Ipv6Address GetEnbAddr ();
 
     /** 
      * set the address of the eNB to which the UE is connected
      * 
      * \param addr the address of the eNB
      */
-    void SetEnbAddr (Ipv4Address addr);
+    void SetEnbAddr (Ipv6Address addr);
 
     /** 
      * \return the address of the UE
      */
-    Ipv4Address GetUeAddr ();
+    Ipv6Address GetUeAddr ();
 
     /** 
      * set the address of the UE
      * 
      * \param addr the address of the UE
      */
-    void SetUeAddr (Ipv4Address addr);
+    void SetUeAddr (Ipv6Address addr);
 
 
   private:
     EpcTftClassifier m_tftClassifier;
-    Ipv4Address m_enbAddr;
-    Ipv4Address m_ueAddr;
+    Ipv6Address m_enbAddr;
+    Ipv6Address m_ueAddr;
     std::map<uint8_t, uint32_t> m_teidByBearerIdMap;
   };
 
@@ -230,7 +230,7 @@ private:
   /**
    * Map telling for each UE address the corresponding UE info 
    */
-  std::map<Ipv4Address, Ptr<UeInfo> > m_ueInfoByAddrMap;
+  std::map<Ipv6Address, Ptr<UeInfo> > m_ueInfoByAddrMap;
 
   /**
    * Map telling for each IMSI the corresponding UE info 
@@ -258,8 +258,8 @@ private:
 
   struct EnbInfo
   {
-    Ipv4Address enbAddr;
-    Ipv4Address sgwAddr;    
+    Ipv6Address enbAddr;
+    Ipv6Address sgwAddr;
   };
 
   std::map<uint16_t, EnbInfo> m_enbInfoByCellId;

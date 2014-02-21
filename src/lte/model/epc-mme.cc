@@ -87,7 +87,7 @@ EpcMme::GetS11SapMme ()
 }
 
 void 
-EpcMme::AddEnb (uint16_t gci, Ipv4Address enbS1uAddr, EpcS1apSapEnb* enbS1apSap)
+EpcMme::AddEnb (uint16_t gci, Ipv6Address enbS1uAddr, EpcS1apSapEnb* enbS1apSap)
 {
   NS_LOG_FUNCTION (this << gci << enbS1uAddr);
   Ptr<EnbInfo> enbInfo = Create<EnbInfo> ();

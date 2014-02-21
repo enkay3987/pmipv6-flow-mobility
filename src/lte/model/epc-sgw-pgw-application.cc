@@ -23,10 +23,11 @@
 #include "epc-sgw-pgw-application.h"
 #include "ns3/log.h"
 #include "ns3/mac48-address.h"
-#include "ns3/ipv4.h"
+#include "ns3/ipv6.h"
 #include "ns3/inet-socket-address.h"
 #include "ns3/epc-gtpu-header.h"
 #include "ns3/abort.h"
+#include "ns3/ipv6-header.h"
 
 namespace ns3 {
 
@@ -62,26 +63,26 @@ EpcSgwPgwApplication::UeInfo::Classify (Ptr<Packet> p)
   return m_tftClassifier.Classify (p, EpcTft::DOWNLINK);
 }
 
-Ipv4Address 
+Ipv6Address
 EpcSgwPgwApplication::UeInfo::GetEnbAddr ()
 {
   return m_enbAddr;
 }
 
 void
-EpcSgwPgwApplication::UeInfo::SetEnbAddr (Ipv4Address enbAddr)
+EpcSgwPgwApplication::UeInfo::SetEnbAddr (Ipv6Address enbAddr)
 {
   m_enbAddr = enbAddr;
 }
 
-Ipv4Address 
+Ipv6Address
 EpcSgwPgwApplication::UeInfo::GetUeAddr ()
 {
   return m_ueAddr;
 }
 
 void
-EpcSgwPgwApplication::UeInfo::SetUeAddr (Ipv4Address ueAddr)
+EpcSgwPgwApplication::UeInfo::SetUeAddr (Ipv6Address ueAddr)
 {
   m_ueAddr = ueAddr;
 }
@@ -136,20 +137,20 @@ EpcSgwPgwApplication::RecvFromTunDevice (Ptr<Packet> packet, const Address& sour
 
   // get IP address of UE
   Ptr<Packet> pCopy = packet->Copy ();
-  Ipv4Header ipv4Header;
-  pCopy->RemoveHeader (ipv4Header);
-  Ipv4Address ueAddr =  ipv4Header.GetDestination ();
+  Ipv6Header ipv6Header;
+  pCopy->RemoveHeader (ipv6Header);
+  Ipv6Address ueAddr =  ipv6Header.GetDestinationAddress ();
   NS_LOG_LOGIC ("packet addressed to UE " << ueAddr);
 
   // find corresponding UeInfo address
-  std::map<Ipv4Address, Ptr<UeInfo> >::iterator it = m_ueInfoByAddrMap.find (ueAddr);
+  std::map<Ipv6Address, Ptr<UeInfo> >::iterator it = m_ueInfoByAddrMap.find (ueAddr);
   if (it == m_ueInfoByAddrMap.end ())
     {        
       NS_LOG_WARN ("unknown UE address " << ueAddr) ;
     }
   else
     {
-      Ipv4Address enbAddr = it->second->GetEnbAddr ();      
+      Ipv6Address enbAddr = it->second->GetEnbAddr ();
       uint32_t teid = it->second->Classify (packet);   
       if (teid == 0)
         {
@@ -194,7 +195,7 @@ EpcSgwPgwApplication::SendToTunDevice (Ptr<Packet> packet, uint32_t teid)
 }
 
 void 
-EpcSgwPgwApplication::SendToS1uSocket (Ptr<Packet> packet, Ipv4Address enbAddr, uint32_t teid)
+EpcSgwPgwApplication::SendToS1uSocket (Ptr<Packet> packet, Ipv6Address enbAddr, uint32_t teid)
 {
   NS_LOG_FUNCTION (this << packet << enbAddr << teid);
 
@@ -205,7 +206,7 @@ EpcSgwPgwApplication::SendToS1uSocket (Ptr<Packet> packet, Ipv4Address enbAddr, 
   gtpu.SetLength (packet->GetSize () + gtpu.GetSerializedSize () - 8);  
   packet->AddHeader (gtpu);
   uint32_t flags = 0;
-  m_s1uSocket->SendTo (packet, flags, InetSocketAddress(enbAddr, m_gtpuUdpPort));
+  m_s1uSocket->SendTo (packet, flags, Inet6SocketAddress(enbAddr, m_gtpuUdpPort));
 }
 
 
@@ -222,7 +223,7 @@ EpcSgwPgwApplication::GetS11SapSgw ()
 }
 
 void 
-EpcSgwPgwApplication::AddEnb (uint16_t cellId, Ipv4Address enbAddr, Ipv4Address sgwAddr)
+EpcSgwPgwApplication::AddEnb (uint16_t cellId, Ipv6Address enbAddr, Ipv6Address sgwAddr)
 {
   NS_LOG_FUNCTION (this << cellId << enbAddr << sgwAddr);
   EnbInfo enbInfo;
@@ -240,7 +241,7 @@ EpcSgwPgwApplication::AddUe (uint64_t imsi)
 }
 
 void 
-EpcSgwPgwApplication::SetUeAddress (uint64_t imsi, Ipv4Address ueAddr)
+EpcSgwPgwApplication::SetUeAddress (uint64_t imsi, Ipv6Address ueAddr)
 {
   NS_LOG_FUNCTION (this << imsi << ueAddr);
   std::map<uint64_t, Ptr<UeInfo> >::iterator ueit = m_ueInfoByImsiMap.find (imsi);
@@ -258,7 +259,7 @@ EpcSgwPgwApplication::DoCreateSessionRequest (EpcS11SapSgw::CreateSessionRequest
   uint16_t cellId = req.uli.gci;
   std::map<uint16_t, EnbInfo>::iterator enbit = m_enbInfoByCellId.find (cellId);
   NS_ASSERT_MSG (enbit != m_enbInfoByCellId.end (), "unknown CellId " << cellId); 
-  Ipv4Address enbAddr = enbit->second.enbAddr;
+  Ipv6Address enbAddr = enbit->second.enbAddr;
   ueit->second->SetEnbAddr (enbAddr);
 
   EpcS11SapMme::CreateSessionResponseMessage res;
@@ -297,7 +298,7 @@ EpcSgwPgwApplication::DoModifyBearerRequest (EpcS11SapSgw::ModifyBearerRequestMe
   uint16_t cellId = req.uli.gci;
   std::map<uint16_t, EnbInfo>::iterator enbit = m_enbInfoByCellId.find (cellId);
   NS_ASSERT_MSG (enbit != m_enbInfoByCellId.end (), "unknown CellId " << cellId); 
-  Ipv4Address enbAddr = enbit->second.enbAddr;
+  Ipv6Address enbAddr = enbit->second.enbAddr;
   ueit->second->SetEnbAddr (enbAddr);
   // no actual bearer modification: for now we just support the minimum needed for path switch request (handover)
   EpcS11SapMme::ModifyBearerResponseMessage res;

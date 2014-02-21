@@ -82,8 +82,8 @@ EpcTft::PacketFilter::PacketFilter ()
 
 bool 
 EpcTft::PacketFilter::Matches (Direction d,
-			       Ipv4Address ra, 
-			       Ipv4Address la, 
+			       Ipv6Address ra,
+			       Ipv6Address la,
 			       uint16_t rp,
 			       uint16_t lp,
 			       uint8_t tos)
@@ -173,8 +173,8 @@ EpcTft::Add (PacketFilter f)
     
 bool 
 EpcTft::Matches (Direction direction,
-		 Ipv4Address remoteAddress, 
-		 Ipv4Address localAddress, 
+		 Ipv6Address remoteAddress,
+		 Ipv6Address localAddress,
 		 uint16_t remotePort,
 		 uint16_t localPort,
 		 uint8_t typeOfService)

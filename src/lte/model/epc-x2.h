@@ -36,13 +36,13 @@ namespace ns3 {
 class X2IfaceInfo : public SimpleRefCount<X2IfaceInfo>
 {
 public:
-  X2IfaceInfo (Ipv4Address remoteIpAddr, Ptr<Socket> localCtrlPlaneSocket, Ptr<Socket> localUserPlaneSocket);
+  X2IfaceInfo (Ipv6Address remoteIpAddr, Ptr<Socket> localCtrlPlaneSocket, Ptr<Socket> localUserPlaneSocket);
   virtual ~X2IfaceInfo (void);
 
   X2IfaceInfo& operator= (const X2IfaceInfo &);
 
 public:
-  Ipv4Address   m_remoteIpAddr;
+  Ipv6Address   m_remoteIpAddr;
   Ptr<Socket>   m_localCtrlPlaneSocket;
   Ptr<Socket>   m_localUserPlaneSocket;
 };
@@ -104,8 +104,8 @@ public:
    * \param enb2CellId the cell ID of the neighbouring eNodeB
    * \param enb2X2Address the address of the neighbouring eNodeB
    */
-  void AddX2Interface (uint16_t enb1CellId, Ipv4Address enb1X2Address,
-                       uint16_t enb2CellId, Ipv4Address enb2X2Address);
+  void AddX2Interface (uint16_t enb1CellId, Ipv6Address enb1X2Address,
+                       uint16_t enb2CellId, Ipv6Address enb2X2Address);
 
 
   /** 

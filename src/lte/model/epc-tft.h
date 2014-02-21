@@ -24,7 +24,7 @@
 
 
 #include <ns3/simple-ref-count.h>
-#include <ns3/ipv4-address.h>
+#include <ns3/ipv6-address.h>
 
 #include <list>
 
@@ -87,8 +87,8 @@ public:
      * false otherwise.
      */
     bool Matches (Direction d,
-		  Ipv4Address ra, 
-		  Ipv4Address la, 
+		  Ipv6Address ra,
+		  Ipv6Address la,
 		  uint16_t rp,
 		  uint16_t lp,
 		  uint8_t tos);
@@ -104,10 +104,10 @@ public:
     Direction direction; /**< whether the filter needs to be applied
 			    to uplink / downlink only, or in both cases*/
 
-    Ipv4Address remoteAddress;     /**< IPv4 address of the remote host  */
-    Ipv4Mask remoteMask; /**< IPv4 address mask of the remote host */
-    Ipv4Address localAddress;      /**< IPv4 address of the UE */
-    Ipv4Mask localMask;  /**< IPv4 address mask of the UE */
+    Ipv6Address remoteAddress;     /**< IPv6 address of the remote host  */
+    Ipv6Prefix remoteMask; /**< IPv6 address mask of the remote host */
+    Ipv6Address localAddress;      /**< IPv6 address of the UE */
+    Ipv6Prefix localMask;  /**< IPv6 address mask of the UE */
   
     uint16_t remotePortStart;  /**< start of the port number range of the remote host */
     uint16_t remotePortEnd;    /**< end of the port number range of the remote host */
@@ -144,8 +144,8 @@ public:
      * parameters, false otherwise.
      */
     bool Matches (Direction direction,
-		  Ipv4Address remoteAddress, 
-		  Ipv4Address localAddress, 
+		  Ipv6Address remoteAddress,
+		  Ipv6Address localAddress,
 		  uint16_t remotePort,
 		  uint16_t localPort,
 		  uint8_t typeOfService);

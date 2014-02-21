@@ -31,9 +31,9 @@
 #include "ns3/pointer.h"
 #include "ns3/enum.h"
 #include "lte-amc.h"
-#include "ns3/ipv4-header.h"
+#include "ns3/ipv6-header.h"
 #include <ns3/lte-radio-bearer-tag.h>
-#include <ns3/ipv4-l3-protocol.h>
+#include <ns3/ipv6-l3-protocol.h>
 #include <ns3/log.h>
 
 NS_LOG_COMPONENT_DEFINE ("LteNetDevice");
@@ -284,7 +284,7 @@ void
 LteNetDevice::Receive (Ptr<Packet> p)
 {
   NS_LOG_FUNCTION (this << p);
-  m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
+  m_rxCallback (this, p, Ipv6L3Protocol::PROT_NUMBER, Address ());
 }
 
 
