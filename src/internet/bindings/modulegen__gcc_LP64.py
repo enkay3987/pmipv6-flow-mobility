@@ -146,6 +146,8 @@ def register_types(module):
     module.add_class('Ipv6AddressGenerator')
     ## ipv6-address-helper.h (module 'internet'): ns3::Ipv6AddressHelper [class]
     module.add_class('Ipv6AddressHelper')
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1 [class]
+    module.add_class('Ipv6AddressHelper1')
     ## ipv6-interface-address.h (module 'internet'): ns3::Ipv6InterfaceAddress [class]
     module.add_class('Ipv6InterfaceAddress')
     ## ipv6-interface-address.h (module 'internet'): ns3::Ipv6InterfaceAddress::State_e [enumeration]
@@ -809,6 +811,7 @@ def register_methods(root_module):
     register_Ns3Ipv6Address_methods(root_module, root_module['ns3::Ipv6Address'])
     register_Ns3Ipv6AddressGenerator_methods(root_module, root_module['ns3::Ipv6AddressGenerator'])
     register_Ns3Ipv6AddressHelper_methods(root_module, root_module['ns3::Ipv6AddressHelper'])
+    register_Ns3Ipv6AddressHelper1_methods(root_module, root_module['ns3::Ipv6AddressHelper1'])
     register_Ns3Ipv6InterfaceAddress_methods(root_module, root_module['ns3::Ipv6InterfaceAddress'])
     register_Ns3Ipv6InterfaceContainer_methods(root_module, root_module['ns3::Ipv6InterfaceContainer'])
     register_Ns3Ipv6MulticastRoutingTableEntry_methods(root_module, root_module['ns3::Ipv6MulticastRoutingTableEntry'])
@@ -3189,6 +3192,48 @@ def register_Ns3Ipv6AddressHelper_methods(root_module, cls):
                    [param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix'), param('ns3::Ipv6Address', 'base', default_value='ns3::Ipv6Address(((const char*)"::1"))')])
     return
 
+def register_Ns3Ipv6AddressHelper1_methods(root_module, cls):
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1::Ipv6AddressHelper1(ns3::Ipv6AddressHelper1 const & arg0) [copy constructor]
+    cls.add_constructor([param('ns3::Ipv6AddressHelper1 const &', 'arg0')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1::Ipv6AddressHelper1() [constructor]
+    cls.add_constructor([])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1::Ipv6AddressHelper1(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix, ns3::Ipv6Address base=ns3::Ipv6Address(((const char*)"::1"))) [constructor]
+    cls.add_constructor([param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix'), param('ns3::Ipv6Address', 'base', default_value='ns3::Ipv6Address(((const char*)"::1"))')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6InterfaceContainer ns3::Ipv6AddressHelper1::Assign(ns3::NetDeviceContainer const & c) [member function]
+    cls.add_method('Assign', 
+                   'ns3::Ipv6InterfaceContainer', 
+                   [param('ns3::NetDeviceContainer const &', 'c')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6InterfaceContainer ns3::Ipv6AddressHelper1::Assign(ns3::NetDeviceContainer const & c, std::vector<bool,std::allocator<bool> > withConfiguration) [member function]
+    cls.add_method('Assign', 
+                   'ns3::Ipv6InterfaceContainer', 
+                   [param('ns3::NetDeviceContainer const &', 'c'), param('std::vector< bool >', 'withConfiguration')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6InterfaceContainer ns3::Ipv6AddressHelper1::AssignWithoutAddress(ns3::NetDeviceContainer const & c) [member function]
+    cls.add_method('AssignWithoutAddress', 
+                   'ns3::Ipv6InterfaceContainer', 
+                   [param('ns3::NetDeviceContainer const &', 'c')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6Address ns3::Ipv6AddressHelper1::NewAddress(ns3::Address addr) [member function]
+    cls.add_method('NewAddress', 
+                   'ns3::Ipv6Address', 
+                   [param('ns3::Address', 'addr')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6Address ns3::Ipv6AddressHelper1::NewAddress() [member function]
+    cls.add_method('NewAddress', 
+                   'ns3::Ipv6Address', 
+                   [])
+    ## ipv6-address-helper1.h (module 'internet'): void ns3::Ipv6AddressHelper1::NewNetwork(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix) [member function]
+    cls.add_method('NewNetwork', 
+                   'void', 
+                   [param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix')], 
+                   deprecated=True)
+    ## ipv6-address-helper1.h (module 'internet'): void ns3::Ipv6AddressHelper1::NewNetwork() [member function]
+    cls.add_method('NewNetwork', 
+                   'void', 
+                   [])
+    ## ipv6-address-helper1.h (module 'internet'): void ns3::Ipv6AddressHelper1::SetBase(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix, ns3::Ipv6Address base=ns3::Ipv6Address(((const char*)"::1"))) [member function]
+    cls.add_method('SetBase', 
+                   'void', 
+                   [param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix'), param('ns3::Ipv6Address', 'base', default_value='ns3::Ipv6Address(((const char*)"::1"))')])
+    return
+
 def register_Ns3Ipv6InterfaceAddress_methods(root_module, cls):
     cls.add_binary_comparison_operator('!=')
     cls.add_output_stream_operator()
@@ -5080,7 +5125,6 @@ def register_Ns3Empty_methods(root_module, cls):
     return
 
 def register_Ns3Int64x64_t_methods(root_module, cls):
-    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('!=')
     cls.add_inplace_numeric_operator('+=', param('ns3::int64x64_t const &', 'right'))
     cls.add_binary_numeric_operator('*', root_module['ns3::int64x64_t'], root_module['ns3::int64x64_t'], param('long long unsigned int const', 'right'))
@@ -5138,6 +5182,7 @@ def register_Ns3Int64x64_t_methods(root_module, cls):
     cls.add_inplace_numeric_operator('-=', param('ns3::int64x64_t const &', 'right'))
     cls.add_inplace_numeric_operator('/=', param('ns3::int64x64_t const &', 'right'))
     cls.add_output_stream_operator()
+    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('==')
     cls.add_binary_comparison_operator('>=')
     ## int64x64-double.h (module 'core'): ns3::int64x64_t::int64x64_t() [constructor]
@@ -9545,7 +9590,6 @@ def register_Ns3TcpWestwood_methods(root_module, cls):
     return
 
 def register_Ns3Time_methods(root_module, cls):
-    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('!=')
     cls.add_inplace_numeric_operator('+=', param('ns3::Time const &', 'right'))
     cls.add_binary_numeric_operator('+', root_module['ns3::Time'], root_module['ns3::Time'], param('ns3::Time const &', 'right'))
@@ -9554,6 +9598,7 @@ def register_Ns3Time_methods(root_module, cls):
     cls.add_binary_comparison_operator('>')
     cls.add_inplace_numeric_operator('-=', param('ns3::Time const &', 'right'))
     cls.add_output_stream_operator()
+    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('==')
     cls.add_binary_comparison_operator('>=')
     ## nstime.h (module 'core'): ns3::Time::Time() [constructor]
