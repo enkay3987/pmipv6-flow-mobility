@@ -39,11 +39,35 @@ using namespace ns3;
  * attaches one UE per eNodeB starts a flow for each UE to  and from a remote host.
  * It also  starts yet another flow between each UE pair.
  */
-NS_LOG_COMPONENT_DEFINE ("EpcFirstExample");
+NS_LOG_COMPONENT_DEFINE ("EpcIpv6Example1");
+
+void PrintCompleteNodeInfo(Ptr<Node> node)
+{
+  int n_interfaces, n_ipaddrs, i, j;
+  Ptr<Ipv6> ipv6;
+  Ipv6InterfaceAddress ipv6address;
+
+  ipv6 = node->GetObject<Ipv6> ();
+  n_interfaces = ipv6->GetNInterfaces();
+  NS_LOG_INFO("No of interfaces: " << n_interfaces);
+  for (i = 0; i < n_interfaces; i++)
+  {
+    n_ipaddrs = ipv6->GetNAddresses(i);
+    NS_LOG_INFO("Interface " << i);
+    for (j = 0; j < n_ipaddrs; j++)
+    {
+      ipv6address = ipv6->GetAddress(i, j);
+      NS_LOG_INFO(ipv6address);
+    }
+  }
+  OutputStreamWrapper osw = OutputStreamWrapper (&std::cout);
+  Ptr<Ipv6RoutingProtocol> ipv6rp = ipv6->GetRoutingProtocol();
+  ipv6rp->PrintRoutingTable(&osw);
+}
+
 int
 main (int argc, char *argv[])
 {
-
   uint16_t numberOfNodes = 2;
   double simTime = 1.1;
   double distance = 60.0;
@@ -99,15 +123,21 @@ main (int argc, char *argv[])
   ueNodes.Create(numberOfNodes);
 
   // Install Mobility Model
-  Ptr<ListPositionAllocator> positionAlloc = CreateObject<ListPositionAllocator> ();
+  Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator> ();
   for (uint16_t i = 0; i < numberOfNodes; i++)
     {
-      positionAlloc->Add (Vector(distance * i, 0, 0));
+      enbPositionAlloc->Add (Vector(distance * i, 0, 0));
     }
   MobilityHelper mobility;
   mobility.SetMobilityModel("ns3::ConstantPositionMobilityModel");
-  mobility.SetPositionAllocator(positionAlloc);
+  mobility.SetPositionAllocator(enbPositionAlloc);
   mobility.Install(enbNodes);
+  Ptr<ListPositionAllocator> uePositionAlloc = CreateObject<ListPositionAllocator> ();
+  for (uint16_t i = 0; i < numberOfNodes; i++)
+    {
+      uePositionAlloc->Add (Vector(distance * i, 20, 0));
+    }
+  mobility.SetPositionAllocator(uePositionAlloc);
   mobility.Install(ueNodes);
 
   // Install LTE Devices to the nodes
@@ -116,7 +146,8 @@ main (int argc, char *argv[])
 
   // Install the IP stack on the UEs
   internet.Install (ueNodes);
-  ueLteDevs.Get (0)->SetAddress (Mac48Address::Allocate ());
+  for (uint32_t i = 0; i < ueLteDevs.GetN (); i++)
+    ueLteDevs.Get (i)->SetAddress (Mac48Address::Allocate ());
   Ipv6InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignUeIpv6Address (NetDeviceContainer (ueLteDevs));
   // Assign IP address to UEs, and install applications
@@ -126,6 +157,13 @@ main (int argc, char *argv[])
       // Set the default gateway for the UE
       Ptr<Ipv6StaticRouting> ueStaticRouting = ipv6RoutingHelper.GetStaticRouting (ueNode->GetObject<Ipv6> ());
       ueStaticRouting->SetDefaultRoute (epcHelper->GetUeDefaultGatewayAddress (), 1);
+    }
+
+  // Print UE Info
+  for (uint32_t i = 0; i < ueNodes.GetN (); i++)
+    {
+      std::cout << "UE " << i << std::endl;
+      PrintCompleteNodeInfo (ueNodes.Get (i));
     }
 
   // Attach one UE per eNodeB

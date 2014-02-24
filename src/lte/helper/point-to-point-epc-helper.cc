@@ -54,15 +54,12 @@ PointToPointEpcHelper::PointToPointEpcHelper ()
 {
   NS_LOG_FUNCTION (this);
 
-  // since we use point-to-point links for all S1-U links, 
-  // we use a /30 subnet which can hold exactly two addresses 
-  // (remember that net broadcast and null address are not valid)
-  m_s1uIpv6AddressHelper.SetBase ("fc00:0:0:0", "64");
+  m_s1uIpv6AddressHelper.SetBase ("fc::", Ipv6Prefix (64));
 
-  m_x2Ipv6AddressHelper.SetBase ("fd00:0:0:0", "64");
+  m_x2Ipv6AddressHelper.SetBase ("fd::", Ipv6Prefix (64));
 
   // we use a /8 net for all UEs
-  m_ueAddressHelper.SetBase ("fe00:0:0:0", "64");
+  m_ueAddressHelper.SetBase ("fe::", Ipv6Prefix (64));
   
   // create SgwPgwNode
   m_sgwPgw = CreateObject<Node> ();
@@ -307,7 +304,7 @@ PointToPointEpcHelper::ActivateEpsBearer (Ptr<NetDevice> ueDevice, uint64_t imsi
   NS_ASSERT_MSG (ueIpv6 != 0, "UEs need to have IPv6 installed before EPS bearers can be activated");
   int32_t interface =  ueIpv6->GetInterfaceForDevice (ueDevice);
   NS_ASSERT (interface >= 0);
-  NS_ASSERT (ueIpv6->GetNAddresses (interface) == 1);
+  NS_ASSERT (ueIpv6->GetNAddresses (interface) == 2);
   Ipv6Address ueAddr = ueIpv6->GetAddress (interface, 1).GetAddress ();
   NS_LOG_LOGIC (" UE IP address: " << ueAddr);  m_sgwPgwApp->SetUeAddress (imsi, ueAddr);
   

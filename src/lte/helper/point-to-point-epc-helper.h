@@ -24,7 +24,7 @@
 #define POINT_TO_POINT_EPC_HELPER_H
 
 #include <ns3/object.h>
-#include <ns3/ipv6-address-helper.h>
+#include <ns3/ipv6-address-helper1.h>
 #include <ns3/data-rate.h>
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
@@ -87,7 +87,7 @@ private:
   /** 
    * helper to assign addresses to UE devices as well as to the TUN device of the SGW/PGW
    */
-  Ipv6AddressHelper m_ueAddressHelper;
+  Ipv6AddressHelper1 m_ueAddressHelper;
   
   Ptr<Node> m_sgwPgw; 
   Ptr<EpcSgwPgwApplication> m_sgwPgwApp;
@@ -101,7 +101,7 @@ private:
   /** 
    * helper to assign addresses to S1-U NetDevices 
    */
-  Ipv6AddressHelper m_s1uIpv6AddressHelper;
+  Ipv6AddressHelper1 m_s1uIpv6AddressHelper;
 
   DataRate m_s1uLinkDataRate;
   Time     m_s1uLinkDelay;
@@ -121,7 +121,7 @@ private:
   /** 
    * helper to assign addresses to X2 NetDevices 
    */
-  Ipv6AddressHelper m_x2Ipv6AddressHelper;
+  Ipv6AddressHelper1 m_x2Ipv6AddressHelper;
 
   DataRate m_x2LinkDataRate;
   Time     m_x2LinkDelay;
