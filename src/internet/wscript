@@ -192,6 +192,7 @@ def build(bld):
         'model/ipv4-packet-probe.cc',
         'model/ipv6-packet-probe.cc',
         'model/ipv6-pmtu-cache.cc',
+        'helper/ipv6-address-helper1.cc',
         ]
 
     internet_test = bld.create_ns3_module_test_library('internet')
@@ -219,6 +220,7 @@ def build(bld):
         'test/ipv6-fragmentation-test.cc',
         'test/ipv6-forwarding-test.cc',
         'test/ipv6-address-helper-test-suite.cc',
+        'test/ipv6-address-helper1-test-suite.cc',
         'test/rtt-test.cc',
         ]
     headers = bld(features='ns3header')
@@ -305,6 +307,7 @@ def build(bld):
         'model/ipv4-packet-probe.h',
         'model/ipv6-packet-probe.h',
         'model/ipv6-pmtu-cache.h',
+        'helper/ipv6-address-helper1.h'
        ]
 
     if bld.env['NSC_ENABLED']:
