@@ -9,6 +9,8 @@ Debug/
 *~
 # Ignore pcap files
 *.pcap
+# Ignore pyc files
+*.pyc
 
 # Ignore all hidden files
 .*
