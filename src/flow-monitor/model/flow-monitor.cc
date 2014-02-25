@@ -92,7 +92,12 @@ FlowMonitor::FlowMonitor ()
 void
 FlowMonitor::DoDispose (void)
 {
-  m_classifier = 0;
+  for (std::list<Ptr<FlowClassifier> >::iterator iter = m_classifiers.begin ();
+      iter != m_classifiers.end ();
+      iter ++)
+    {
+      *iter = 0;
+    }
   for (uint32_t i = 0; i < m_flowProbes.size (); i++)
     {
       m_flowProbes[i]->Dispose ();
@@ -391,9 +396,9 @@ FlowMonitor::StopRightNow ()
 }
 
 void
-FlowMonitor::SetFlowClassifier (Ptr<FlowClassifier> classifier)
+FlowMonitor::AddFlowClassifier (Ptr<FlowClassifier> classifier)
 {
-  m_classifier = classifier;
+  m_classifiers.push_back (classifier);
 }
 
 void
@@ -458,7 +463,12 @@ FlowMonitor::SerializeToXmlStream (std::ostream &os, int indent, bool enableHist
   indent -= 2;
   INDENT (indent); os << "</FlowStats>\n";
 
-  m_classifier->SerializeToXmlStream (os, indent);
+  for (std::list<Ptr<FlowClassifier> >::iterator iter = m_classifiers.begin ();
+      iter != m_classifiers.end ();
+      iter ++)
+    {
+      (*iter)->SerializeToXmlStream (os, indent);
+    }
 
   if (enableProbes)
     {
