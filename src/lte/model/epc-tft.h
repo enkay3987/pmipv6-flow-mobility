@@ -105,9 +105,9 @@ public:
 			    to uplink / downlink only, or in both cases*/
 
     Ipv6Address remoteAddress;     /**< IPv6 address of the remote host  */
-    Ipv6Prefix remoteMask; /**< IPv6 address mask of the remote host */
+    Ipv6Prefix remotePrefix; /**< IPv6 address prefix of the remote host */
     Ipv6Address localAddress;      /**< IPv6 address of the UE */
-    Ipv6Prefix localMask;  /**< IPv6 address mask of the UE */
+    Ipv6Prefix localPrefix;  /**< IPv6 address prefix of the UE */
   
     uint16_t remotePortStart;  /**< start of the port number range of the remote host */
     uint16_t remotePortEnd;    /**< end of the port number range of the remote host */

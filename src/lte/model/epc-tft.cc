@@ -53,9 +53,9 @@ std::ostream& operator<< (std::ostream& os, EpcTft::PacketFilter& f)
 {
   os << " direction: " << f.direction
      << " remoteAddress: "  << f.remoteAddress 
-     << " remoteMask: "  << f.remoteMask 
+     << " remotePrefix: "  << f.remotePrefix
      << " localAddress: "  << f.localAddress 
-     << " localMask: "  << f.localMask 
+     << " localPrefix: "  << f.localPrefix
      << " remotePortStart: "   << f.remotePortStart
      << " remotePortEnd: "   << f.remotePortEnd 
      << " localPortStart: "   << f.localPortStart 
@@ -68,8 +68,8 @@ std::ostream& operator<< (std::ostream& os, EpcTft::PacketFilter& f)
 EpcTft::PacketFilter::PacketFilter ()
   : precedence (255),
     direction (BIDIRECTIONAL),
-    remoteMask ("0.0.0.0"),
-    localMask ("0.0.0.0"),
+    remotePrefix (uint8_t (0)),
+    localPrefix (uint8_t (0)),
     remotePortStart (0),
     remotePortEnd (65535), 
     localPortStart (0),
@@ -92,10 +92,10 @@ EpcTft::PacketFilter::Matches (Direction d,
   if (d & direction)
     {
       NS_LOG_LOGIC ("d matches");
-      if (remoteMask.IsMatch (remoteAddress, ra))
+      if (remotePrefix.IsMatch (remoteAddress, ra))
 	{
 	  NS_LOG_LOGIC ("ra matches");
-	  if (localMask.IsMatch (localAddress, la))
+	  if (localPrefix.IsMatch (localAddress, la))
 	    {
 	      NS_LOG_LOGIC ("ls matches");
 	      if (rp >= remotePortStart)
@@ -122,12 +122,12 @@ EpcTft::PacketFilter::Matches (Direction d,
 	    }
 	  else
 	    {
-	      NS_LOG_LOGIC ("la doesn't match: la=" << la << " f.la=" << localAddress << " f.lmask=" << localMask);
+	      NS_LOG_LOGIC ("la doesn't match: la=" << la << " f.la=" << localAddress << " f.lprefix=" << localPrefix);
 	    }
 	}
       else
 	{
-	  NS_LOG_LOGIC ("ra doesn't match: ra=" << ra << " f.ra=" << remoteAddress << " f.rmask=" << remoteMask);
+	  NS_LOG_LOGIC ("ra doesn't match: ra=" << ra << " f.ra=" << remoteAddress << " f.rprefix=" << remotePrefix);
 	}
     }
   else
