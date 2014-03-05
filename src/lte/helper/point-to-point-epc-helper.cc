@@ -26,6 +26,7 @@
 #include <ns3/mac48-address.h>
 #include <ns3/eps-bearer.h>
 #include <ns3/ipv6-address.h>
+#include <ns3/boolean.h>
 #include <ns3/internet-stack-helper.h>
 #include <ns3/point-to-point-helper.h>
 #include <ns3/packet-socket-helper.h>
@@ -66,6 +67,9 @@ PointToPointEpcHelper::PointToPointEpcHelper ()
   InternetStackHelper internet;
   internet.Install (m_sgwPgw);
   
+  Ptr<Ipv6> sgwPgwIpv6 = m_sgwPgw->GetObject<Ipv6> ();
+  sgwPgwIpv6->SetAttribute ("SendIcmpv6Redirect", BooleanValue (false));
+
   // create S1-U socket
   Ptr<Socket> sgwPgwS1uSocket = Socket::CreateSocket (m_sgwPgw, TypeId::LookupByName ("ns3::UdpSocketFactory"));
   int retval = sgwPgwS1uSocket->Bind (Inet6SocketAddress (Ipv6Address::GetAny (), m_gtpuUdpPort));

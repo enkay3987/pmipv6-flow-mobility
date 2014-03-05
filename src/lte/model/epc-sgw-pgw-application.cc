@@ -28,6 +28,7 @@
 #include "ns3/epc-gtpu-header.h"
 #include "ns3/abort.h"
 #include "ns3/ipv6-header.h"
+#include "ns3/ipv6-l3-protocol.h"
 
 namespace ns3 {
 
@@ -133,7 +134,7 @@ EpcSgwPgwApplication::~EpcSgwPgwApplication ()
 bool
 EpcSgwPgwApplication::RecvFromTunDevice (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber)
 {
-  NS_LOG_FUNCTION (this << source << dest << packet << packet->GetSize ());
+  NS_LOG_FUNCTION (this << source << dest << packet << packet->GetSize () << protocolNumber);
 
   // get IP address of UE
   Ptr<Packet> pCopy = packet->Copy ();
@@ -191,7 +192,8 @@ EpcSgwPgwApplication::SendToTunDevice (Ptr<Packet> packet, uint32_t teid)
 {
   NS_LOG_FUNCTION (this << packet << teid);
   NS_LOG_LOGIC (" packet size: " << packet->GetSize () << " bytes");
-  m_tunDevice->Receive (packet, 0x0800, m_tunDevice->GetAddress (), m_tunDevice->GetAddress (), NetDevice::PACKET_HOST);
+  bool ret = m_tunDevice->Receive (packet, Ipv6L3Protocol::PROT_NUMBER, m_tunDevice->GetAddress (), m_tunDevice->GetAddress (), NetDevice::PACKET_HOST);
+  NS_LOG_DEBUG ("Tunnel device receive: " << ret);
 }
 
 void 

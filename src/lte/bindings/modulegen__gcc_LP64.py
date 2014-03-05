@@ -304,6 +304,8 @@ def register_types(module):
     root_module['ns3::Ipv6Address'].implicitly_converts_to(root_module['ns3::Address'])
     ## ipv6-address-helper.h (module 'internet'): ns3::Ipv6AddressHelper [class]
     module.add_class('Ipv6AddressHelper', import_from_module='ns.internet')
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1 [class]
+    module.add_class('Ipv6AddressHelper1', import_from_module='ns.internet')
     ## ipv6-interface-address.h (module 'internet'): ns3::Ipv6InterfaceAddress [class]
     module.add_class('Ipv6InterfaceAddress', import_from_module='ns.internet')
     ## ipv6-interface-address.h (module 'internet'): ns3::Ipv6InterfaceAddress::State_e [enumeration]
@@ -1608,6 +1610,7 @@ def register_methods(root_module):
     register_Ns3Ipv4Mask_methods(root_module, root_module['ns3::Ipv4Mask'])
     register_Ns3Ipv6Address_methods(root_module, root_module['ns3::Ipv6Address'])
     register_Ns3Ipv6AddressHelper_methods(root_module, root_module['ns3::Ipv6AddressHelper'])
+    register_Ns3Ipv6AddressHelper1_methods(root_module, root_module['ns3::Ipv6AddressHelper1'])
     register_Ns3Ipv6InterfaceAddress_methods(root_module, root_module['ns3::Ipv6InterfaceAddress'])
     register_Ns3Ipv6InterfaceContainer_methods(root_module, root_module['ns3::Ipv6InterfaceContainer'])
     register_Ns3Ipv6Prefix_methods(root_module, root_module['ns3::Ipv6Prefix'])
@@ -4863,6 +4866,48 @@ def register_Ns3Ipv6AddressHelper_methods(root_module, cls):
                    'void', 
                    [])
     ## ipv6-address-helper.h (module 'internet'): void ns3::Ipv6AddressHelper::SetBase(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix, ns3::Ipv6Address base=ns3::Ipv6Address(((const char*)"::1"))) [member function]
+    cls.add_method('SetBase', 
+                   'void', 
+                   [param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix'), param('ns3::Ipv6Address', 'base', default_value='ns3::Ipv6Address(((const char*)"::1"))')])
+    return
+
+def register_Ns3Ipv6AddressHelper1_methods(root_module, cls):
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1::Ipv6AddressHelper1(ns3::Ipv6AddressHelper1 const & arg0) [copy constructor]
+    cls.add_constructor([param('ns3::Ipv6AddressHelper1 const &', 'arg0')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1::Ipv6AddressHelper1() [constructor]
+    cls.add_constructor([])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6AddressHelper1::Ipv6AddressHelper1(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix, ns3::Ipv6Address base=ns3::Ipv6Address(((const char*)"::1"))) [constructor]
+    cls.add_constructor([param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix'), param('ns3::Ipv6Address', 'base', default_value='ns3::Ipv6Address(((const char*)"::1"))')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6InterfaceContainer ns3::Ipv6AddressHelper1::Assign(ns3::NetDeviceContainer const & c) [member function]
+    cls.add_method('Assign', 
+                   'ns3::Ipv6InterfaceContainer', 
+                   [param('ns3::NetDeviceContainer const &', 'c')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6InterfaceContainer ns3::Ipv6AddressHelper1::Assign(ns3::NetDeviceContainer const & c, std::vector<bool, std::allocator<bool> > withConfiguration) [member function]
+    cls.add_method('Assign', 
+                   'ns3::Ipv6InterfaceContainer', 
+                   [param('ns3::NetDeviceContainer const &', 'c'), param('std::vector< bool >', 'withConfiguration')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6InterfaceContainer ns3::Ipv6AddressHelper1::AssignWithoutAddress(ns3::NetDeviceContainer const & c) [member function]
+    cls.add_method('AssignWithoutAddress', 
+                   'ns3::Ipv6InterfaceContainer', 
+                   [param('ns3::NetDeviceContainer const &', 'c')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6Address ns3::Ipv6AddressHelper1::NewAddress(ns3::Address addr) [member function]
+    cls.add_method('NewAddress', 
+                   'ns3::Ipv6Address', 
+                   [param('ns3::Address', 'addr')])
+    ## ipv6-address-helper1.h (module 'internet'): ns3::Ipv6Address ns3::Ipv6AddressHelper1::NewAddress() [member function]
+    cls.add_method('NewAddress', 
+                   'ns3::Ipv6Address', 
+                   [])
+    ## ipv6-address-helper1.h (module 'internet'): void ns3::Ipv6AddressHelper1::NewNetwork(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix) [member function]
+    cls.add_method('NewNetwork', 
+                   'void', 
+                   [param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix')], 
+                   deprecated=True)
+    ## ipv6-address-helper1.h (module 'internet'): void ns3::Ipv6AddressHelper1::NewNetwork() [member function]
+    cls.add_method('NewNetwork', 
+                   'void', 
+                   [])
+    ## ipv6-address-helper1.h (module 'internet'): void ns3::Ipv6AddressHelper1::SetBase(ns3::Ipv6Address network, ns3::Ipv6Prefix prefix, ns3::Ipv6Address base=ns3::Ipv6Address(((const char*)"::1"))) [member function]
     cls.add_method('SetBase', 
                    'void', 
                    [param('ns3::Ipv6Address', 'network'), param('ns3::Ipv6Prefix', 'prefix'), param('ns3::Ipv6Address', 'base', default_value='ns3::Ipv6Address(((const char*)"::1"))')])
@@ -12572,22 +12617,22 @@ def register_Ns3EpcTftPacketFilter_methods(root_module, cls):
     cls.add_instance_attribute('direction', 'ns3::EpcTft::Direction', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localAddress [variable]
     cls.add_instance_attribute('localAddress', 'ns3::Ipv6Address', is_const=False)
-    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localMask [variable]
-    cls.add_instance_attribute('localMask', 'ns3::Ipv6Prefix', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localPortEnd [variable]
     cls.add_instance_attribute('localPortEnd', 'uint16_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localPortStart [variable]
     cls.add_instance_attribute('localPortStart', 'uint16_t', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localPrefix [variable]
+    cls.add_instance_attribute('localPrefix', 'ns3::Ipv6Prefix', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::precedence [variable]
     cls.add_instance_attribute('precedence', 'uint8_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remoteAddress [variable]
     cls.add_instance_attribute('remoteAddress', 'ns3::Ipv6Address', is_const=False)
-    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remoteMask [variable]
-    cls.add_instance_attribute('remoteMask', 'ns3::Ipv6Prefix', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remotePortEnd [variable]
     cls.add_instance_attribute('remotePortEnd', 'uint16_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remotePortStart [variable]
     cls.add_instance_attribute('remotePortStart', 'uint16_t', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remotePrefix [variable]
+    cls.add_instance_attribute('remotePrefix', 'ns3::Ipv6Prefix', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::typeOfService [variable]
     cls.add_instance_attribute('typeOfService', 'uint8_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::typeOfServiceMask [variable]
