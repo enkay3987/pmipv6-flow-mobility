@@ -74,10 +74,7 @@ namespace ns3 {
  * modified EUI-64-format identifier created from the MAC address as 
  * specified in \RFC{4291}.
  *
- * BEWARE: the underlying implementation acts as a Singleton.
- * In other terms, two different instances of Ipv6AddressHelper will
- * pick IPv6 numbers from the same pool. Changing the network in one of them
- * will also change the network in the other instances.
+ * This class only works with prefix /64.
  */
 class Ipv6AddressHelper
 {
@@ -180,6 +177,11 @@ public:
    */
   Ipv6InterfaceContainer AssignWithoutAddress (const NetDeviceContainer &c);
 
+private:
+  Ipv6Address m_network;  //!< network address
+  Ipv6Prefix m_prefix;    //!< prefix
+  Ipv6Address m_address;  //!< host part of the address to be assigned
+  Ipv6Address m_base;     //!< base address
 };
 
 } /* namespace ns3 */
