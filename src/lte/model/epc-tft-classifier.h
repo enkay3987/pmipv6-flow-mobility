@@ -37,8 +37,6 @@ class Packet;
 
 /**
  * \brief classifies IP packets accoding to Traffic Flow Templates (TFTs)
- * 
- * \note this implementation works with IPv4 only.
  */
 class EpcTftClassifier : public SimpleRefCount<EpcTftClassifier>
 {
@@ -61,11 +59,10 @@ public:
    */
   void Delete (uint32_t id);
   
-
   /** 
    * classify an IP packet
    * 
-   * \param p the IP packet. It is assumed that the outmost header is an IPv4 header.
+   * \param p the IP packet. The outmost header can either be IPv4 or IPv6.
    * 
    * \return the identifier (>0) of the first TFT that matches with the IP packet; 0 if no TFT matched.
    */

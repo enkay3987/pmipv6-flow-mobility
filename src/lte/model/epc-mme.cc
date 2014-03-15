@@ -92,12 +92,25 @@ EpcMme::AddEnb (uint16_t gci, Ipv4Address enbS1uAddr, EpcS1apSapEnb* enbS1apSap)
   NS_LOG_FUNCTION (this << gci << enbS1uAddr);
   Ptr<EnbInfo> enbInfo = Create<EnbInfo> ();
   enbInfo->gci = gci;
+  enbInfo->isIpv4 = true;
   enbInfo->s1uAddr = enbS1uAddr;
   enbInfo->s1apSapEnb = enbS1apSap;
   m_enbInfoMap[gci] = enbInfo;
 }
 
 void 
+EpcMme::AddEnb (uint16_t gci, Ipv6Address enbS1uAddr6, EpcS1apSapEnb* enbS1apSap)
+{
+  NS_LOG_FUNCTION (this << gci << enbS1uAddr6);
+  Ptr<EnbInfo> enbInfo = Create<EnbInfo> ();
+  enbInfo->gci = gci;
+  enbInfo->isIpv4 = false;
+  enbInfo->s1uAddr6 = enbS1uAddr6;
+  enbInfo->s1apSapEnb = enbS1apSap;
+  m_enbInfoMap[gci] = enbInfo;
+}
+
+void
 EpcMme::AddUe (uint64_t imsi)
 {
   NS_LOG_FUNCTION (this << imsi);
@@ -190,7 +203,9 @@ EpcMme::DoCreateSessionResponse (EpcS11SapMme::CreateSessionResponseMessage msg)
       EpcS1apSapEnb::ErabToBeSetupItem erab;
       erab.erabId = bit->epsBearerId;
       erab.erabLevelQosParameters = bit->bearerLevelQos;
+      erab.isIpv4 = bit->sgwFteid.isIpv4;
       erab.transportLayerAddress = bit->sgwFteid.address;
+      erab.transportLayerAddress6 = bit->sgwFteid.address6;
       erab.sgwTeid = bit->sgwFteid.teid;      
       erabToBeSetupList.push_back (erab);
     }

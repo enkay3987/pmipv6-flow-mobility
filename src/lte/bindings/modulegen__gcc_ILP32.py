@@ -974,6 +974,8 @@ def register_types(module):
     module.add_class('EnumChecker', import_from_module='ns.core', parent=root_module['ns3::AttributeChecker'])
     ## enum.h (module 'core'): ns3::EnumValue [class]
     module.add_class('EnumValue', import_from_module='ns.core', parent=root_module['ns3::AttributeValue'])
+    ## epc6-sgw-pgw-application.h (module 'lte'): ns3::Epc6SgwPgwApplication [class]
+    module.add_class('Epc6SgwPgwApplication', parent=root_module['ns3::Application'])
     ## epc-enb-application.h (module 'lte'): ns3::EpcEnbApplication [class]
     module.add_class('EpcEnbApplication', parent=root_module['ns3::Application'])
     ## epc-enb-application.h (module 'lte'): ns3::EpcEnbApplication::EpsFlowId_t [struct]
@@ -1374,6 +1376,9 @@ def register_types(module):
     module.add_container('std::map< unsigned int, unsigned int >', ('unsigned int', 'unsigned int'), container_type='map')
     module.add_container('std::list< ns3::Ptr< ns3::LteControlMessage > >', 'ns3::Ptr< ns3::LteControlMessage >', container_type='list')
     module.add_container('std::list< ns3::UlDciLteControlMessage >', 'ns3::UlDciLteControlMessage', container_type='list')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned int, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned int > > >', 'ns3::Uint32Map')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned int, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned int > > >*', 'ns3::Uint32Map*')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned int, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned int > > >&', 'ns3::Uint32Map&')
     typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned long long, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned long long > > >', 'ns3::Uint64Map')
     typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned long long, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned long long > > >*', 'ns3::Uint64Map*')
     typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned long long, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned long long > > >&', 'ns3::Uint64Map&')
@@ -1448,21 +1453,21 @@ def register_types(module):
     typehandlers.add_type_alias('uint32_t', 'ns3::SpectrumModelUid_t')
     typehandlers.add_type_alias('uint32_t*', 'ns3::SpectrumModelUid_t*')
     typehandlers.add_type_alias('uint32_t&', 'ns3::SpectrumModelUid_t&')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, double, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, double > > >', 'ns3::DoubleMap')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, double, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, double > > >*', 'ns3::DoubleMap*')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, double, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, double > > >&', 'ns3::DoubleMap&')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned int, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned int > > >', 'ns3::Uint32Map')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned int, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned int > > >*', 'ns3::Uint32Map*')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, unsigned int, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, unsigned int > > >&', 'ns3::Uint32Map&')
     typehandlers.add_type_alias('ns3::Callback< void, ns3::UlInfoListElement_s, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty >', 'ns3::LtePhyUlHarqFeedbackCallback')
     typehandlers.add_type_alias('ns3::Callback< void, ns3::UlInfoListElement_s, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty >*', 'ns3::LtePhyUlHarqFeedbackCallback*')
     typehandlers.add_type_alias('ns3::Callback< void, ns3::UlInfoListElement_s, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty, ns3::empty >&', 'ns3::LtePhyUlHarqFeedbackCallback&')
     typehandlers.add_type_alias('std::vector< std::vector< ns3::RlcPduListElement_s, std::allocator< ns3::RlcPduListElement_s > >, std::allocator< std::vector< ns3::RlcPduListElement_s, std::allocator< ns3::RlcPduListElement_s > > > >', 'ns3::RlcPduList_t')
     typehandlers.add_type_alias('std::vector< std::vector< ns3::RlcPduListElement_s, std::allocator< ns3::RlcPduListElement_s > >, std::allocator< std::vector< ns3::RlcPduListElement_s, std::allocator< ns3::RlcPduListElement_s > > > >*', 'ns3::RlcPduList_t*')
     typehandlers.add_type_alias('std::vector< std::vector< ns3::RlcPduListElement_s, std::allocator< ns3::RlcPduListElement_s > >, std::allocator< std::vector< ns3::RlcPduListElement_s, std::allocator< ns3::RlcPduListElement_s > > > >&', 'ns3::RlcPduList_t&')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, double, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, double > > >', 'ns3::DoubleMap')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, double, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, double > > >*', 'ns3::DoubleMap*')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, double, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, double > > >&', 'ns3::DoubleMap&')
     typehandlers.add_type_alias('std::vector< ns3::DlDciListElement_s, std::allocator< ns3::DlDciListElement_s > >', 'ns3::DlHarqProcessesDciBuffer_t')
     typehandlers.add_type_alias('std::vector< ns3::DlDciListElement_s, std::allocator< ns3::DlDciListElement_s > >*', 'ns3::DlHarqProcessesDciBuffer_t*')
     typehandlers.add_type_alias('std::vector< ns3::DlDciListElement_s, std::allocator< ns3::DlDciListElement_s > >&', 'ns3::DlHarqProcessesDciBuffer_t&')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::LteFlowId_t, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::LteFlowId_t > > >', 'ns3::FlowIdMap')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::LteFlowId_t, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::LteFlowId_t > > >*', 'ns3::FlowIdMap*')
+    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::LteFlowId_t, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::LteFlowId_t > > >&', 'ns3::FlowIdMap&')
     typehandlers.add_type_alias('ns3::Vector3DChecker', 'ns3::VectorChecker')
     typehandlers.add_type_alias('ns3::Vector3DChecker*', 'ns3::VectorChecker*')
     typehandlers.add_type_alias('ns3::Vector3DChecker&', 'ns3::VectorChecker&')
@@ -1470,9 +1475,6 @@ def register_types(module):
     typehandlers.add_type_alias('std::vector< unsigned char, std::allocator< unsigned char > >', 'ns3::DlHarqProcessesTimer_t')
     typehandlers.add_type_alias('std::vector< unsigned char, std::allocator< unsigned char > >*', 'ns3::DlHarqProcessesTimer_t*')
     typehandlers.add_type_alias('std::vector< unsigned char, std::allocator< unsigned char > >&', 'ns3::DlHarqProcessesTimer_t&')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::LteFlowId_t, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::LteFlowId_t > > >', 'ns3::FlowIdMap')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::LteFlowId_t, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::LteFlowId_t > > >*', 'ns3::FlowIdMap*')
-    typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::LteFlowId_t, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::LteFlowId_t > > >&', 'ns3::FlowIdMap&')
     typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::Ptr< ns3::MinMaxAvgTotalCalculator< unsigned int > >, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::Ptr< ns3::MinMaxAvgTotalCalculator< unsigned int > > > > >', 'ns3::Uint32StatsMap')
     typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::Ptr< ns3::MinMaxAvgTotalCalculator< unsigned int > >, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::Ptr< ns3::MinMaxAvgTotalCalculator< unsigned int > > > > >*', 'ns3::Uint32StatsMap*')
     typehandlers.add_type_alias('std::map< ns3::ImsiLcidPair_t, ns3::Ptr< ns3::MinMaxAvgTotalCalculator< unsigned int > >, std::less< ns3::ImsiLcidPair_t >, std::allocator< std::pair< ns3::ImsiLcidPair_t const, ns3::Ptr< ns3::MinMaxAvgTotalCalculator< unsigned int > > > > >&', 'ns3::Uint32StatsMap&')
@@ -1951,6 +1953,7 @@ def register_methods(root_module):
     register_Ns3EmptyAttributeValue_methods(root_module, root_module['ns3::EmptyAttributeValue'])
     register_Ns3EnumChecker_methods(root_module, root_module['ns3::EnumChecker'])
     register_Ns3EnumValue_methods(root_module, root_module['ns3::EnumValue'])
+    register_Ns3Epc6SgwPgwApplication_methods(root_module, root_module['ns3::Epc6SgwPgwApplication'])
     register_Ns3EpcEnbApplication_methods(root_module, root_module['ns3::EpcEnbApplication'])
     register_Ns3EpcEnbApplicationEpsFlowId_t_methods(root_module, root_module['ns3::EpcEnbApplication::EpsFlowId_t'])
     register_Ns3EpcHelper_methods(root_module, root_module['ns3::EpcHelper'])
@@ -2958,10 +2961,14 @@ def register_Ns3EpcEnbS1SapUserDataRadioBearerSetupRequestParameters_methods(roo
     cls.add_instance_attribute('bearerId', 'uint8_t', is_const=False)
     ## epc-enb-s1-sap.h (module 'lte'): ns3::EpcEnbS1SapUser::DataRadioBearerSetupRequestParameters::gtpTeid [variable]
     cls.add_instance_attribute('gtpTeid', 'uint32_t', is_const=False)
+    ## epc-enb-s1-sap.h (module 'lte'): ns3::EpcEnbS1SapUser::DataRadioBearerSetupRequestParameters::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     ## epc-enb-s1-sap.h (module 'lte'): ns3::EpcEnbS1SapUser::DataRadioBearerSetupRequestParameters::rnti [variable]
     cls.add_instance_attribute('rnti', 'uint16_t', is_const=False)
     ## epc-enb-s1-sap.h (module 'lte'): ns3::EpcEnbS1SapUser::DataRadioBearerSetupRequestParameters::transportLayerAddress [variable]
     cls.add_instance_attribute('transportLayerAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-enb-s1-sap.h (module 'lte'): ns3::EpcEnbS1SapUser::DataRadioBearerSetupRequestParameters::transportLayerAddress6 [variable]
+    cls.add_instance_attribute('transportLayerAddress6', 'ns3::Ipv6Address', is_const=False)
     return
 
 def register_Ns3EpcEnbS1SapUserPathSwitchRequestAcknowledgeParameters_methods(root_module, cls):
@@ -2987,6 +2994,10 @@ def register_Ns3EpcS11SapFteid_methods(root_module, cls):
     cls.add_constructor([param('ns3::EpcS11Sap::Fteid const &', 'arg0')])
     ## epc-s11-sap.h (module 'lte'): ns3::EpcS11Sap::Fteid::address [variable]
     cls.add_instance_attribute('address', 'ns3::Ipv4Address', is_const=False)
+    ## epc-s11-sap.h (module 'lte'): ns3::EpcS11Sap::Fteid::address6 [variable]
+    cls.add_instance_attribute('address6', 'ns3::Ipv6Address', is_const=False)
+    ## epc-s11-sap.h (module 'lte'): ns3::EpcS11Sap::Fteid::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     ## epc-s11-sap.h (module 'lte'): ns3::EpcS11Sap::Fteid::teid [variable]
     cls.add_instance_attribute('teid', 'uint32_t', is_const=False)
     return
@@ -3146,8 +3157,12 @@ def register_Ns3EpcS1apSapEnbErabSwitchedInUplinkItem_methods(root_module, cls):
     cls.add_instance_attribute('enbTeid', 'uint32_t', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabSwitchedInUplinkItem::erabId [variable]
     cls.add_instance_attribute('erabId', 'uint8_t', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabSwitchedInUplinkItem::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabSwitchedInUplinkItem::transportLayerAddress [variable]
     cls.add_instance_attribute('transportLayerAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabSwitchedInUplinkItem::transportLayerAddress6 [variable]
+    cls.add_instance_attribute('transportLayerAddress6', 'ns3::Ipv6Address', is_const=False)
     return
 
 def register_Ns3EpcS1apSapEnbErabToBeSetupItem_methods(root_module, cls):
@@ -3159,10 +3174,14 @@ def register_Ns3EpcS1apSapEnbErabToBeSetupItem_methods(root_module, cls):
     cls.add_instance_attribute('erabId', 'uint8_t', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabToBeSetupItem::erabLevelQosParameters [variable]
     cls.add_instance_attribute('erabLevelQosParameters', 'ns3::EpsBearer', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabToBeSetupItem::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabToBeSetupItem::sgwTeid [variable]
     cls.add_instance_attribute('sgwTeid', 'uint32_t', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabToBeSetupItem::transportLayerAddress [variable]
     cls.add_instance_attribute('transportLayerAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapEnb::ErabToBeSetupItem::transportLayerAddress6 [variable]
+    cls.add_instance_attribute('transportLayerAddress6', 'ns3::Ipv6Address', is_const=False)
     return
 
 def register_Ns3EpcS1apSapMme_methods(root_module, cls):
@@ -3196,8 +3215,12 @@ def register_Ns3EpcS1apSapMmeErabSetupItem_methods(root_module, cls):
     cls.add_instance_attribute('enbTeid', 'uint32_t', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSetupItem::enbTransportLayerAddress [variable]
     cls.add_instance_attribute('enbTransportLayerAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSetupItem::enbTransportLayerAddress6 [variable]
+    cls.add_instance_attribute('enbTransportLayerAddress6', 'ns3::Ipv6Address', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSetupItem::erabId [variable]
     cls.add_instance_attribute('erabId', 'uint16_t', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSetupItem::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     return
 
 def register_Ns3EpcS1apSapMmeErabSwitchedInDownlinkItem_methods(root_module, cls):
@@ -3209,8 +3232,12 @@ def register_Ns3EpcS1apSapMmeErabSwitchedInDownlinkItem_methods(root_module, cls
     cls.add_instance_attribute('enbTeid', 'uint32_t', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSwitchedInDownlinkItem::enbTransportLayerAddress [variable]
     cls.add_instance_attribute('enbTransportLayerAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSwitchedInDownlinkItem::enbTransportLayerAddress6 [variable]
+    cls.add_instance_attribute('enbTransportLayerAddress6', 'ns3::Ipv6Address', is_const=False)
     ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSwitchedInDownlinkItem::erabId [variable]
     cls.add_instance_attribute('erabId', 'uint16_t', is_const=False)
+    ## epc-s1ap-sap.h (module 'lte'): ns3::EpcS1apSapMme::ErabSwitchedInDownlinkItem::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     return
 
 def register_Ns3EpcX2Sap_methods(root_module, cls):
@@ -8710,7 +8737,6 @@ def register_Ns3FdtbfqsFlowPerf_t_methods(root_module, cls):
     return
 
 def register_Ns3Int64x64_t_methods(root_module, cls):
-    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('!=')
     cls.add_inplace_numeric_operator('+=', param('ns3::int64x64_t const &', 'right'))
     cls.add_binary_numeric_operator('*', root_module['ns3::int64x64_t'], root_module['ns3::int64x64_t'], param('long long unsigned int const', 'right'))
@@ -8768,6 +8794,7 @@ def register_Ns3Int64x64_t_methods(root_module, cls):
     cls.add_inplace_numeric_operator('-=', param('ns3::int64x64_t const &', 'right'))
     cls.add_inplace_numeric_operator('/=', param('ns3::int64x64_t const &', 'right'))
     cls.add_output_stream_operator()
+    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('==')
     cls.add_binary_comparison_operator('>=')
     ## int64x64-double.h (module 'core'): ns3::int64x64_t::int64x64_t() [constructor]
@@ -11309,7 +11336,6 @@ def register_Ns3SpectrumValue_methods(root_module, cls):
     return
 
 def register_Ns3Time_methods(root_module, cls):
-    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('!=')
     cls.add_inplace_numeric_operator('+=', param('ns3::Time const &', 'right'))
     cls.add_binary_numeric_operator('+', root_module['ns3::Time'], root_module['ns3::Time'], param('ns3::Time const &', 'right'))
@@ -11318,6 +11344,7 @@ def register_Ns3Time_methods(root_module, cls):
     cls.add_binary_comparison_operator('>')
     cls.add_inplace_numeric_operator('-=', param('ns3::Time const &', 'right'))
     cls.add_output_stream_operator()
+    cls.add_binary_comparison_operator('<=')
     cls.add_binary_comparison_operator('==')
     cls.add_binary_comparison_operator('>=')
     ## nstime.h (module 'core'): ns3::Time::Time() [constructor]
@@ -11764,6 +11791,10 @@ def register_Ns3UeManager_methods(root_module, cls):
     cls.add_method('SetupDataRadioBearer', 
                    'void', 
                    [param('ns3::EpsBearer', 'bearer'), param('uint8_t', 'bearerId'), param('uint32_t', 'gtpTeid'), param('ns3::Ipv4Address', 'transportLayerAddress')])
+    ## lte-enb-rrc.h (module 'lte'): void ns3::UeManager::SetupDataRadioBearer(ns3::EpsBearer bearer, uint8_t bearerId, uint32_t gtpTeid, ns3::Ipv6Address transportLayerAddress6) [member function]
+    cls.add_method('SetupDataRadioBearer', 
+                   'void', 
+                   [param('ns3::EpsBearer', 'bearer'), param('uint8_t', 'bearerId'), param('uint32_t', 'gtpTeid'), param('ns3::Ipv6Address', 'transportLayerAddress6')])
     ## lte-enb-rrc.h (module 'lte'): void ns3::UeManager::StartDataRadioBearers() [member function]
     cls.add_method('StartDataRadioBearers', 
                    'void', 
@@ -12868,11 +12899,66 @@ def register_Ns3EnumValue_methods(root_module, cls):
                    [param('int', 'v')])
     return
 
+def register_Ns3Epc6SgwPgwApplication_methods(root_module, cls):
+    ## epc6-sgw-pgw-application.h (module 'lte'): ns3::Epc6SgwPgwApplication::Epc6SgwPgwApplication(ns3::Epc6SgwPgwApplication const & arg0) [copy constructor]
+    cls.add_constructor([param('ns3::Epc6SgwPgwApplication const &', 'arg0')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): ns3::Epc6SgwPgwApplication::Epc6SgwPgwApplication(ns3::Ptr<ns3::VirtualNetDevice> const tunDevice, ns3::Ptr<ns3::Socket> const s1uSocket) [constructor]
+    cls.add_constructor([param('ns3::Ptr< ns3::VirtualNetDevice > const', 'tunDevice'), param('ns3::Ptr< ns3::Socket > const', 's1uSocket')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::AddEnb(uint16_t cellId, ns3::Ipv6Address enbAddr, ns3::Ipv6Address sgwAddr) [member function]
+    cls.add_method('AddEnb', 
+                   'void', 
+                   [param('uint16_t', 'cellId'), param('ns3::Ipv6Address', 'enbAddr'), param('ns3::Ipv6Address', 'sgwAddr')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::AddUe(uint64_t imsi) [member function]
+    cls.add_method('AddUe', 
+                   'void', 
+                   [param('uint64_t', 'imsi')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::DoDispose() [member function]
+    cls.add_method('DoDispose', 
+                   'void', 
+                   [], 
+                   is_virtual=True)
+    ## epc6-sgw-pgw-application.h (module 'lte'): ns3::EpcS11SapSgw * ns3::Epc6SgwPgwApplication::GetS11SapSgw() [member function]
+    cls.add_method('GetS11SapSgw', 
+                   'ns3::EpcS11SapSgw *', 
+                   [])
+    ## epc6-sgw-pgw-application.h (module 'lte'): static ns3::TypeId ns3::Epc6SgwPgwApplication::GetTypeId() [member function]
+    cls.add_method('GetTypeId', 
+                   'ns3::TypeId', 
+                   [], 
+                   is_static=True)
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::RecvFromS1uSocket(ns3::Ptr<ns3::Socket> socket) [member function]
+    cls.add_method('RecvFromS1uSocket', 
+                   'void', 
+                   [param('ns3::Ptr< ns3::Socket >', 'socket')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): bool ns3::Epc6SgwPgwApplication::RecvFromTunDevice(ns3::Ptr<ns3::Packet> packet, ns3::Address const & source, ns3::Address const & dest, uint16_t protocolNumber) [member function]
+    cls.add_method('RecvFromTunDevice', 
+                   'bool', 
+                   [param('ns3::Ptr< ns3::Packet >', 'packet'), param('ns3::Address const &', 'source'), param('ns3::Address const &', 'dest'), param('uint16_t', 'protocolNumber')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::SendToS1uSocket(ns3::Ptr<ns3::Packet> packet, ns3::Ipv6Address enbS1uAddress, uint32_t teid) [member function]
+    cls.add_method('SendToS1uSocket', 
+                   'void', 
+                   [param('ns3::Ptr< ns3::Packet >', 'packet'), param('ns3::Ipv6Address', 'enbS1uAddress'), param('uint32_t', 'teid')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::SendToTunDevice(ns3::Ptr<ns3::Packet> packet, uint32_t teid) [member function]
+    cls.add_method('SendToTunDevice', 
+                   'void', 
+                   [param('ns3::Ptr< ns3::Packet >', 'packet'), param('uint32_t', 'teid')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::SetS11SapMme(ns3::EpcS11SapMme * s) [member function]
+    cls.add_method('SetS11SapMme', 
+                   'void', 
+                   [param('ns3::EpcS11SapMme *', 's')])
+    ## epc6-sgw-pgw-application.h (module 'lte'): void ns3::Epc6SgwPgwApplication::SetUeAddress(uint64_t imsi, ns3::Ipv6Address ueAddr) [member function]
+    cls.add_method('SetUeAddress', 
+                   'void', 
+                   [param('uint64_t', 'imsi'), param('ns3::Ipv6Address', 'ueAddr')])
+    return
+
 def register_Ns3EpcEnbApplication_methods(root_module, cls):
     ## epc-enb-application.h (module 'lte'): ns3::EpcEnbApplication::EpcEnbApplication(ns3::EpcEnbApplication const & arg0) [copy constructor]
     cls.add_constructor([param('ns3::EpcEnbApplication const &', 'arg0')])
     ## epc-enb-application.h (module 'lte'): ns3::EpcEnbApplication::EpcEnbApplication(ns3::Ptr<ns3::Socket> lteSocket, ns3::Ptr<ns3::Socket> s1uSocket, ns3::Ipv4Address enbS1uAddress, ns3::Ipv4Address sgwS1uAddress, uint16_t cellId) [constructor]
     cls.add_constructor([param('ns3::Ptr< ns3::Socket >', 'lteSocket'), param('ns3::Ptr< ns3::Socket >', 's1uSocket'), param('ns3::Ipv4Address', 'enbS1uAddress'), param('ns3::Ipv4Address', 'sgwS1uAddress'), param('uint16_t', 'cellId')])
+    ## epc-enb-application.h (module 'lte'): ns3::EpcEnbApplication::EpcEnbApplication(ns3::Ptr<ns3::Socket> lteSocket, ns3::Ptr<ns3::Socket> s1uSocket, ns3::Ipv6Address enbS1uAddress6, ns3::Ipv6Address sgwS1uAddress6, uint16_t cellId) [constructor]
+    cls.add_constructor([param('ns3::Ptr< ns3::Socket >', 'lteSocket'), param('ns3::Ptr< ns3::Socket >', 's1uSocket'), param('ns3::Ipv6Address', 'enbS1uAddress6'), param('ns3::Ipv6Address', 'sgwS1uAddress6'), param('uint16_t', 'cellId')])
     ## epc-enb-application.h (module 'lte'): ns3::EpcEnbS1SapProvider * ns3::EpcEnbApplication::GetS1SapProvider() [member function]
     cls.add_method('GetS1SapProvider', 
                    'ns3::EpcEnbS1SapProvider *', 
@@ -12949,11 +13035,6 @@ def register_Ns3EpcHelper_methods(root_module, cls):
                    'void', 
                    [param('ns3::Ptr< ns3::Node >', 'enbNode1'), param('ns3::Ptr< ns3::Node >', 'enbNode2')], 
                    is_pure_virtual=True, is_virtual=True)
-    ## epc-helper.h (module 'lte'): ns3::Ipv4InterfaceContainer ns3::EpcHelper::AssignUeIpv4Address(ns3::NetDeviceContainer ueDevices) [member function]
-    cls.add_method('AssignUeIpv4Address', 
-                   'ns3::Ipv4InterfaceContainer', 
-                   [param('ns3::NetDeviceContainer', 'ueDevices')], 
-                   is_pure_virtual=True, is_virtual=True)
     ## epc-helper.h (module 'lte'): void ns3::EpcHelper::DoDispose() [member function]
     cls.add_method('DoDispose', 
                    'void', 
@@ -12969,11 +13050,6 @@ def register_Ns3EpcHelper_methods(root_module, cls):
                    'ns3::TypeId', 
                    [], 
                    is_static=True)
-    ## epc-helper.h (module 'lte'): ns3::Ipv4Address ns3::EpcHelper::GetUeDefaultGatewayAddress() [member function]
-    cls.add_method('GetUeDefaultGatewayAddress', 
-                   'ns3::Ipv4Address', 
-                   [], 
-                   is_pure_virtual=True, is_virtual=True)
     return
 
 def register_Ns3EpcMme_methods(root_module, cls):
@@ -12985,10 +13061,14 @@ def register_Ns3EpcMme_methods(root_module, cls):
     cls.add_method('AddBearer', 
                    'void', 
                    [param('uint64_t', 'imsi'), param('ns3::Ptr< ns3::EpcTft >', 'tft'), param('ns3::EpsBearer', 'bearer')])
-    ## epc-mme.h (module 'lte'): void ns3::EpcMme::AddEnb(uint16_t ecgi, ns3::Ipv4Address enbS1UAddr, ns3::EpcS1apSapEnb * enbS1apSap) [member function]
+    ## epc-mme.h (module 'lte'): void ns3::EpcMme::AddEnb(uint16_t gci, ns3::Ipv4Address enbS1uAddr, ns3::EpcS1apSapEnb * enbS1apSap) [member function]
     cls.add_method('AddEnb', 
                    'void', 
-                   [param('uint16_t', 'ecgi'), param('ns3::Ipv4Address', 'enbS1UAddr'), param('ns3::EpcS1apSapEnb *', 'enbS1apSap')])
+                   [param('uint16_t', 'gci'), param('ns3::Ipv4Address', 'enbS1uAddr'), param('ns3::EpcS1apSapEnb *', 'enbS1apSap')])
+    ## epc-mme.h (module 'lte'): void ns3::EpcMme::AddEnb(uint16_t gci, ns3::Ipv6Address enbS1uAddr6, ns3::EpcS1apSapEnb * enbS1apSap) [member function]
+    cls.add_method('AddEnb', 
+                   'void', 
+                   [param('uint16_t', 'gci'), param('ns3::Ipv6Address', 'enbS1uAddr6'), param('ns3::EpcS1apSapEnb *', 'enbS1apSap')])
     ## epc-mme.h (module 'lte'): void ns3::EpcMme::AddUe(uint64_t imsi) [member function]
     cls.add_method('AddUe', 
                    'void', 
@@ -13079,15 +13159,19 @@ def register_Ns3EpcTft_methods(root_module, cls):
     cls.add_method('Add', 
                    'uint8_t', 
                    [param('ns3::EpcTft::PacketFilter', 'f')])
-    ## epc-tft.h (module 'lte'): static ns3::Ptr<ns3::EpcTft> ns3::EpcTft::Default() [member function]
+    ## epc-tft.h (module 'lte'): static ns3::Ptr<ns3::EpcTft> ns3::EpcTft::Default(bool isIpv4) [member function]
     cls.add_method('Default', 
                    'ns3::Ptr< ns3::EpcTft >', 
-                   [], 
+                   [param('bool', 'isIpv4')], 
                    is_static=True)
     ## epc-tft.h (module 'lte'): bool ns3::EpcTft::Matches(ns3::EpcTft::Direction direction, ns3::Ipv4Address remoteAddress, ns3::Ipv4Address localAddress, uint16_t remotePort, uint16_t localPort, uint8_t typeOfService) [member function]
     cls.add_method('Matches', 
                    'bool', 
                    [param('ns3::EpcTft::Direction', 'direction'), param('ns3::Ipv4Address', 'remoteAddress'), param('ns3::Ipv4Address', 'localAddress'), param('uint16_t', 'remotePort'), param('uint16_t', 'localPort'), param('uint8_t', 'typeOfService')])
+    ## epc-tft.h (module 'lte'): bool ns3::EpcTft::Matches(ns3::EpcTft::Direction direction, ns3::Ipv6Address remoteAddress, ns3::Ipv6Address localAddress, uint16_t remotePort, uint16_t localPort, uint8_t typeOfService) [member function]
+    cls.add_method('Matches', 
+                   'bool', 
+                   [param('ns3::EpcTft::Direction', 'direction'), param('ns3::Ipv6Address', 'remoteAddress'), param('ns3::Ipv6Address', 'localAddress'), param('uint16_t', 'remotePort'), param('uint16_t', 'localPort'), param('uint8_t', 'typeOfService')])
     return
 
 def register_Ns3EpcTftPacketFilter_methods(root_module, cls):
@@ -13095,30 +13179,48 @@ def register_Ns3EpcTftPacketFilter_methods(root_module, cls):
     cls.add_constructor([param('ns3::EpcTft::PacketFilter const &', 'arg0')])
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::PacketFilter() [constructor]
     cls.add_constructor([])
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::PacketFilter(bool isIpv4) [constructor]
+    cls.add_constructor([param('bool', 'isIpv4')])
     ## epc-tft.h (module 'lte'): bool ns3::EpcTft::PacketFilter::Matches(ns3::EpcTft::Direction d, ns3::Ipv4Address ra, ns3::Ipv4Address la, uint16_t rp, uint16_t lp, uint8_t tos) [member function]
     cls.add_method('Matches', 
                    'bool', 
                    [param('ns3::EpcTft::Direction', 'd'), param('ns3::Ipv4Address', 'ra'), param('ns3::Ipv4Address', 'la'), param('uint16_t', 'rp'), param('uint16_t', 'lp'), param('uint8_t', 'tos')])
+    ## epc-tft.h (module 'lte'): bool ns3::EpcTft::PacketFilter::Matches(ns3::EpcTft::Direction d, ns3::Ipv6Address ra, ns3::Ipv6Address la, uint16_t rp, uint16_t lp, uint8_t tos) [member function]
+    cls.add_method('Matches', 
+                   'bool', 
+                   [param('ns3::EpcTft::Direction', 'd'), param('ns3::Ipv6Address', 'ra'), param('ns3::Ipv6Address', 'la'), param('uint16_t', 'rp'), param('uint16_t', 'lp'), param('uint8_t', 'tos')])
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::direction [variable]
     cls.add_instance_attribute('direction', 'ns3::EpcTft::Direction', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::flowLabel [variable]
+    cls.add_instance_attribute('flowLabel', 'uint32_t', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::isIpv4 [variable]
+    cls.add_instance_attribute('isIpv4', 'bool', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localAddress [variable]
     cls.add_instance_attribute('localAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localAddress6 [variable]
+    cls.add_instance_attribute('localAddress6', 'ns3::Ipv6Address', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localMask [variable]
     cls.add_instance_attribute('localMask', 'ns3::Ipv4Mask', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localPortEnd [variable]
     cls.add_instance_attribute('localPortEnd', 'uint16_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localPortStart [variable]
     cls.add_instance_attribute('localPortStart', 'uint16_t', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::localPrefix [variable]
+    cls.add_instance_attribute('localPrefix', 'ns3::Ipv6Prefix', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::precedence [variable]
     cls.add_instance_attribute('precedence', 'uint8_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remoteAddress [variable]
     cls.add_instance_attribute('remoteAddress', 'ns3::Ipv4Address', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remoteAddress6 [variable]
+    cls.add_instance_attribute('remoteAddress6', 'ns3::Ipv6Address', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remoteMask [variable]
     cls.add_instance_attribute('remoteMask', 'ns3::Ipv4Mask', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remotePortEnd [variable]
     cls.add_instance_attribute('remotePortEnd', 'uint16_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remotePortStart [variable]
     cls.add_instance_attribute('remotePortStart', 'uint16_t', is_const=False)
+    ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::remotePrefix [variable]
+    cls.add_instance_attribute('remotePrefix', 'ns3::Ipv6Prefix', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::typeOfService [variable]
     cls.add_instance_attribute('typeOfService', 'uint8_t', is_const=False)
     ## epc-tft.h (module 'lte'): ns3::EpcTft::PacketFilter::typeOfServiceMask [variable]
@@ -19558,6 +19660,8 @@ def register_Ns3LteDataRadioBearerInfo_methods(root_module, cls):
     cls.add_instance_attribute('m_epsBearerIdentity', 'uint8_t', is_const=False)
     ## lte-radio-bearer-info.h (module 'lte'): ns3::LteDataRadioBearerInfo::m_gtpTeid [variable]
     cls.add_instance_attribute('m_gtpTeid', 'uint32_t', is_const=False)
+    ## lte-radio-bearer-info.h (module 'lte'): ns3::LteDataRadioBearerInfo::m_isIpv4 [variable]
+    cls.add_instance_attribute('m_isIpv4', 'bool', is_const=False)
     ## lte-radio-bearer-info.h (module 'lte'): ns3::LteDataRadioBearerInfo::m_logicalChannelConfig [variable]
     cls.add_instance_attribute('m_logicalChannelConfig', 'ns3::LteRrcSap::LogicalChannelConfig', is_const=False)
     ## lte-radio-bearer-info.h (module 'lte'): ns3::LteDataRadioBearerInfo::m_logicalChannelIdentity [variable]
@@ -19566,6 +19670,8 @@ def register_Ns3LteDataRadioBearerInfo_methods(root_module, cls):
     cls.add_instance_attribute('m_rlcConfig', 'ns3::LteRrcSap::RlcConfig', is_const=False)
     ## lte-radio-bearer-info.h (module 'lte'): ns3::LteDataRadioBearerInfo::m_transportLayerAddress [variable]
     cls.add_instance_attribute('m_transportLayerAddress', 'ns3::Ipv4Address', is_const=False)
+    ## lte-radio-bearer-info.h (module 'lte'): ns3::LteDataRadioBearerInfo::m_transportLayerAddress6 [variable]
+    cls.add_instance_attribute('m_transportLayerAddress6', 'ns3::Ipv6Address', is_const=False)
     return
 
 def register_Ns3LteDataSinrChunkProcessor_methods(root_module, cls):

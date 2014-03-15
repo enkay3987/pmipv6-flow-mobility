@@ -26,6 +26,7 @@
 #include <ns3/eps-bearer.h>
 #include <ns3/lte-rrc-sap.h>
 #include <ns3/ipv4-address.h>
+#include <ns3/ipv6-address.h>
 
 namespace ns3 {
 
@@ -81,7 +82,9 @@ public:
   uint8_t m_logicalChannelIdentity;
   LteRrcSap::LogicalChannelConfig m_logicalChannelConfig;
   uint32_t m_gtpTeid; /**< S1-bearer GTP tunnel endpoint identifier, see 36.423 9.2.1 */
+  bool m_isIpv4;
   Ipv4Address m_transportLayerAddress; /**< IP Address of the SGW, see 36.423 9.2.1 */
+  Ipv6Address m_transportLayerAddress6;
 };
 
 

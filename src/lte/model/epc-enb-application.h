@@ -60,8 +60,6 @@ protected:
   void DoDispose (void);
 
 public:
-  
-  
 
   /** 
    * Constructor
@@ -74,6 +72,18 @@ public:
    * \param cellId the identifier of the enb
    */
   EpcEnbApplication (Ptr<Socket> lteSocket, Ptr<Socket> s1uSocket, Ipv4Address enbS1uAddress, Ipv4Address sgwS1uAddress, uint16_t cellId);
+
+  /**
+   * Constructor
+   *
+   * \param lteSocket the socket to be used to send/receive packets to/from the LTE radio interface
+   * \param s1uSocket the socket to be used to send/receive packets
+   * to/from the S1-U interface connected with the SGW
+   * \param enbS1uAddress6 the IPv6 address of the S1-U interface of this eNB
+   * \param sgwS1uAddress6 the IPv6 address at which this eNB will be able to reach its SGW for S1-U communications
+   * \param cellId the identifier of the enb
+   */
+  EpcEnbApplication (Ptr<Socket> lteSocket, Ptr<Socket> s1uSocket, Ipv6Address enbS1uAddress6, Ipv6Address sgwS1uAddress6, uint16_t cellId);
 
   /**
    * Destructor
@@ -188,14 +198,34 @@ private:
   Ptr<Socket> m_s1uSocket;
 
   /**
+   * Indicates if enb address is Ipv4 or Ipv6.
+   */
+  bool m_isIpv4EnbS1uAddress;
+
+  /**
    * address of the eNB for S1-U communications
    */
   Ipv4Address m_enbS1uAddress;
 
   /**
+   * address of the eNB for S1-U communications
+   */
+  Ipv6Address m_enbS1uAddress6;
+
+  /**
+   * Indicates if SGW address is Ipv4 or Ipv6.
+   */
+  bool m_isIpv4SgwS1uAddress;
+
+  /**
    * address of the SGW which terminates all S1-U tunnels
    */
   Ipv4Address m_sgwS1uAddress;
+
+  /**
+   * address of the SGW which terminates all S1-U tunnels
+   */
+  Ipv6Address m_sgwS1uAddress6;
 
   /**
    * map of maps telling for each RNTI and BID the corresponding  S1-U TEID

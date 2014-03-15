@@ -78,6 +78,26 @@ EpcTft::PacketFilter::PacketFilter ()
     typeOfServiceMask (0)
 {
   NS_LOG_FUNCTION (this);
+  isIpv4 = true;
+}
+
+EpcTft::PacketFilter::PacketFilter (bool isIpv4)
+  : precedence (255),
+    direction (BIDIRECTIONAL),
+    remotePortStart (0),
+    remotePortEnd (65535),
+    localPortStart (0),
+    localPortEnd (65535),
+    typeOfService (0),
+    typeOfServiceMask (0),
+    flowLabel (0)
+{
+  NS_LOG_FUNCTION (this);
+  this->isIpv4 = isIpv4;
+  if (isIpv4)
+    localMask = remoteMask = Ipv4Mask ("0.0.0.0");
+  else
+    localPrefix = remotePrefix = Ipv6Prefix ("::");
 }
 
 bool 
@@ -89,6 +109,7 @@ EpcTft::PacketFilter::Matches (Direction d,
 			       uint8_t tos)
 {
   NS_LOG_FUNCTION (this << d << ra << la << rp << lp << (uint16_t) tos);
+  NS_ASSERT_MSG (isIpv4, "Ipv6 type filter being checked for Ipv4 packet");
   if (d & direction)
     {
       NS_LOG_LOGIC ("d matches");
@@ -137,13 +158,79 @@ EpcTft::PacketFilter::Matches (Direction d,
   return false;      
 }
 
+bool
+EpcTft::PacketFilter::Matches (Direction d,
+                               Ipv6Address ra,
+                               Ipv6Address la,
+                               uint16_t rp,
+                               uint16_t lp,
+                               uint8_t tos)
+{
+  NS_LOG_FUNCTION (this << d << ra << la << rp << lp << (uint16_t) tos);
+  NS_ASSERT_MSG (!isIpv4, "Ipv4 type filter being checked for Ipv6 packet");
+  if (d & direction)
+    {
+      NS_LOG_LOGIC ("d matches");
+      if (remotePrefix.IsMatch (remoteAddress6, ra))
+        {
+          NS_LOG_LOGIC ("ra matches");
+          if (localPrefix.IsMatch (localAddress6, la))
+            {
+              NS_LOG_LOGIC ("ls matches");
+              if (rp >= remotePortStart)
+                {
+                  NS_LOG_LOGIC ("rps matches");
+                  if (rp <= remotePortEnd)
+                    {
+                      NS_LOG_LOGIC ("rpe matches");
+                      if (lp >= localPortStart)
+                        {
+                          NS_LOG_LOGIC ("lps matches");
+                          if (lp <= localPortEnd)
+                            {
+                              NS_LOG_LOGIC ("lpe matches");
+                              if ((tos & typeOfServiceMask) == (typeOfService & typeOfServiceMask))
+                                {
+                                  NS_LOG_LOGIC ("tos matches --> have match!");
+                                  return true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+          else
+            {
+              NS_LOG_LOGIC ("la doesn't match: la=" << la << " f.la=" << localAddress << " f.lmask=" << localMask);
+            }
+        }
+      else
+        {
+          NS_LOG_LOGIC ("ra doesn't match: ra=" << ra << " f.ra=" << remoteAddress << " f.rmask=" << remoteMask);
+        }
+    }
+  else
+    {
+      NS_LOG_LOGIC ("d doesn't match: d=0x" << std::hex << d << " f.d=0x" << std::hex << direction << std::dec);
+    }
+  return false;
+}
 
 Ptr<EpcTft> 
-EpcTft::Default ()
+EpcTft::Default (bool isIp4)
 {
   Ptr<EpcTft> tft = Create<EpcTft> ();
-  EpcTft::PacketFilter defaultPacketFilter;
-  tft->Add (defaultPacketFilter);
+  if (isIp4)
+    {
+      EpcTft::PacketFilter defaultPacketFilter;
+      tft->Add (defaultPacketFilter);
+    }
+  else
+    {
+      // Create Ipv6 type packet filter.
+      EpcTft::PacketFilter defaultPacketFilter (false);
+      tft->Add (defaultPacketFilter);
+    }
   return tft;
 }
 
@@ -192,5 +279,21 @@ EpcTft::Matches (Direction direction,
   return false;
 }
 
+bool
+EpcTft::Matches (Direction direction,
+                 Ipv6Address remoteAddress,
+                 Ipv6Address localAddress,
+                 uint16_t remotePort,
+                 uint16_t localPort,
+                 uint8_t typeOfService)
+{
+  NS_LOG_FUNCTION (this << direction << remoteAddress << localAddress << std::dec << remotePort << localPort << (uint16_t) typeOfService);
+  for (std::list<PacketFilter>::iterator it = m_filters.begin (); it != m_filters.end (); ++it)
+    {
+      if (it->Matches (direction, remoteAddress, localAddress, remotePort, localPort, typeOfService))
+        return true;
+    }
+  return false;
+}
 
 } // namespace ns3

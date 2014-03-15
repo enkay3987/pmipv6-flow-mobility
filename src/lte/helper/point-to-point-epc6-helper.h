@@ -20,11 +20,11 @@
  *         Manuel Requena <manuel.requena@cttc.es>
  */
 
-#ifndef POINT_TO_POINT_EPC_HELPER_H
-#define POINT_TO_POINT_EPC_HELPER_H
+#ifndef POINT_TO_POINT_EPC6_HELPER_H
+#define POINT_TO_POINT_EPC6_HELPER_H
 
 #include <ns3/object.h>
-#include <ns3/ipv4-address-helper.h>
+#include <ns3/ipv6-address-helper.h>
 #include <ns3/data-rate.h>
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
@@ -35,7 +35,7 @@ namespace ns3 {
 class Node;
 class NetDevice;
 class VirtualNetDevice;
-class EpcSgwPgwApplication;
+class Epc6SgwPgwApplication;
 class EpcX2;
 class EpcMme;
 
@@ -47,32 +47,32 @@ class EpcMme;
  * an MME node. The S1-U, X2-U and X2-C interfaces are realized over
  * PointToPoint links. 
  */
-class PointToPointEpcHelper : public EpcHelper
+class PointToPointEpc6Helper : public EpcHelper
 {
 public:
   
   /** 
    * Constructor
    */
-  PointToPointEpcHelper ();
+  PointToPointEpc6Helper ();
 
   /** 
    * Destructor
    */  
-  virtual ~PointToPointEpcHelper ();
+  virtual ~PointToPointEpc6Helper ();
   
   // inherited from Object
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
-  // inherited from EpcHelper
+  // inherited from Epc6Helper
   virtual void AddEnb (Ptr<Node> enbNode, Ptr<NetDevice> lteEnbNetDevice, uint16_t cellId);
   virtual void AddUe (Ptr<NetDevice> ueLteDevice, uint64_t imsi);
   virtual void AddX2Interface (Ptr<Node> enbNode1, Ptr<Node> enbNode2);
   virtual void ActivateEpsBearer (Ptr<NetDevice> ueLteDevice, uint64_t imsi, Ptr<EpcTft> tft, EpsBearer bearer);
   virtual Ptr<Node> GetPgwNode ();
-  virtual Ipv4InterfaceContainer AssignUeIpv4Address (NetDeviceContainer ueDevices);
-  virtual Ipv4Address GetUeDefaultGatewayAddress ();
+  virtual Ipv6InterfaceContainer AssignUeIpv6Address (NetDeviceContainer ueDevices);
+  virtual Ipv6Address GetUeDefaultGatewayAddress ();
 
 private:
 
@@ -83,10 +83,10 @@ private:
   /** 
    * helper to assign addresses to UE devices as well as to the TUN device of the SGW/PGW
    */
-  Ipv4AddressHelper m_ueAddressHelper; 
+  Ipv6AddressHelper m_ueAddressHelper;
   
   Ptr<Node> m_sgwPgw; 
-  Ptr<EpcSgwPgwApplication> m_sgwPgwApp;
+  Ptr<Epc6SgwPgwApplication> m_sgwPgwApp;
   Ptr<VirtualNetDevice> m_tunDevice;
   Ptr<EpcMme> m_mme;
 
@@ -97,7 +97,7 @@ private:
   /** 
    * helper to assign addresses to S1-U NetDevices 
    */
-  Ipv4AddressHelper m_s1uIpv4AddressHelper; 
+  Ipv6AddressHelper m_s1uIpv6AddressHelper;
 
   DataRate m_s1uLinkDataRate;
   Time     m_s1uLinkDelay;
@@ -117,16 +117,13 @@ private:
   /** 
    * helper to assign addresses to X2 NetDevices 
    */
-  Ipv4AddressHelper m_x2Ipv4AddressHelper;   
+  Ipv6AddressHelper m_x2Ipv6AddressHelper;
 
   DataRate m_x2LinkDataRate;
   Time     m_x2LinkDelay;
   uint16_t m_x2LinkMtu;
 
 };
-
-
-
 
 } // namespace ns3
 

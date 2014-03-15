@@ -114,23 +114,6 @@ public:
    */
   virtual Ptr<Node> GetPgwNode () = 0;
 
-  /** 
-   * Assign IPv4 addresses to UE devices
-   * 
-   * \param ueDevices the set of UE devices
-   * 
-   * \return the interface container, \see Ipv4AddressHelper::Assign() which has similar semantics
-   */
-  virtual Ipv4InterfaceContainer AssignUeIpv4Address (NetDeviceContainer ueDevices) = 0;
-
-
-  /** 
-   * 
-   * \return the address of the Default Gateway to be used by UEs to reach the internet
-   */
-  virtual Ipv4Address GetUeDefaultGatewayAddress () = 0;
-
-
 };
 
 

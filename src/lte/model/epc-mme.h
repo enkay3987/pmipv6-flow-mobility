@@ -87,9 +87,16 @@ public:
    * \param ecgi E-UTRAN Cell Global ID, the unique identifier of the eNodeB
    * \param enbS1apSap the ENB side of the S1-AP SAP 
    */
-  void AddEnb (uint16_t ecgi, Ipv4Address enbS1UAddr, EpcS1apSapEnb* enbS1apSap);
+  void AddEnb (uint16_t gci, Ipv4Address enbS1uAddr, EpcS1apSapEnb* enbS1apSap);
   
   /** 
+   * Add a new ENB to the MME.
+   * \param ecgi E-UTRAN Cell Global ID, the unique identifier of the eNodeB
+   * \param enbS1apSap the ENB side of the S1-AP SAP
+   */
+  void AddEnb (uint16_t gci, Ipv6Address enbS1uAddr6, EpcS1apSapEnb* enbS1apSap);
+
+  /**
    * Add a new UE to the MME. This is the equivalent of storing the UE
    * credentials before the UE is ever turned on. 
    * 
@@ -159,7 +166,9 @@ private:
   struct EnbInfo : public SimpleRefCount<EnbInfo>
   {
     uint16_t gci;
+    bool isIpv4;
     Ipv4Address s1uAddr;
+    Ipv6Address s1uAddr6;
     EpcS1apSapEnb* s1apSapEnb;
   };
 

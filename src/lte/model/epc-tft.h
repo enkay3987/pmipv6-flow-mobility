@@ -25,6 +25,7 @@
 
 #include <ns3/simple-ref-count.h>
 #include <ns3/ipv4-address.h>
+#include "ns3/ipv6-address.h"
 
 #include <list>
 
@@ -46,9 +47,11 @@ public:
   /** 
    * creates a TFT matching any traffic
    *
+   * \param isIpv4 creates an Ipv4 type packet filter if true else an Ipv6 type.
+   *
    * \return a newly created TFT that will match any traffic
    */
-  static Ptr<EpcTft> Default ();
+  static Ptr<EpcTft> Default (bool isIpv4);
   
   /**
    * Indicates the direction of the traffic that is to be classified. 
@@ -65,7 +68,7 @@ public:
    * 
    * With respect to the Packet Filter specification in the above doc,
    * the following features are NOT supported:
-   *  - IPv6 filtering (including flow labels)
+   *  - IPv6 flow labels
    *  - IPSec filtering
    *  - filter precedence field is not evaluated, hence it is recommended to setup
    *    the TFTs within a PDP context such that TFTs are mutually exclusive
@@ -73,6 +76,11 @@ public:
   struct PacketFilter
   {
     PacketFilter ();
+
+    /**
+     * \param isIpv4 if true then creates an Ipv4 packet filter else an Ipv6.
+     */
+    PacketFilter (bool isIpv4);
 
     /** 
      * 
@@ -93,6 +101,25 @@ public:
 		  uint16_t lp,
 		  uint8_t tos);
 
+    /**
+     *
+     * \param d the direction
+     * \param ra the remote address
+     * \param la the local address
+     * \param rp the remote port
+     * \param lp the local port
+     * \param tos the type of service
+     *
+     * \return true if the parameters match with the PacketFilter,
+     * false otherwise.
+     */
+    bool Matches (Direction d,
+                  Ipv6Address ra,
+                  Ipv6Address la,
+                  uint16_t rp,
+                  uint16_t lp,
+                  uint8_t tos);
+
  
 
     uint8_t precedence;  /**< used to specify the precedence for the
@@ -104,10 +131,17 @@ public:
     Direction direction; /**< whether the filter needs to be applied
 			    to uplink / downlink only, or in both cases*/
 
+    bool isIpv4;        /**< whether the filter is Ipv4 based or Ipv6 */
+
     Ipv4Address remoteAddress;     /**< IPv4 address of the remote host  */
     Ipv4Mask remoteMask; /**< IPv4 address mask of the remote host */
     Ipv4Address localAddress;      /**< IPv4 address of the UE */
     Ipv4Mask localMask;  /**< IPv4 address mask of the UE */
+
+    Ipv6Address remoteAddress6; /**< IPv6 address of the remote host  */
+    Ipv6Prefix remotePrefix;    /**< IPv6 prefix of the remote host  */
+    Ipv6Address localAddress6;  /**< IPv6 address of the UE  */
+    Ipv6Prefix localPrefix;     /**< IPv6 prefix of the UE  */
   
     uint16_t remotePortStart;  /**< start of the port number range of the remote host */
     uint16_t remotePortEnd;    /**< end of the port number range of the remote host */
@@ -116,6 +150,8 @@ public:
   
     uint8_t typeOfService;     /**< type of service field */
     uint8_t typeOfServiceMask; /**< type of service field mask */
+
+    uint32_t flowLabel;        /**< flow label type field */
   };
   
   EpcTft ();
@@ -130,25 +166,43 @@ public:
    */
   uint8_t Add (PacketFilter f);
 
+  /**
+   *
+   * \param direction
+   * \param remoteAddress
+   * \param localAddress
+   * \param remotePort
+   * \param localPort
+   * \param typeOfService
+   *
+   * \return true if any PacketFilter in the TFT matches with the
+   * parameters, false otherwise.
+   */
+  bool Matches (Direction direction,
+                Ipv4Address remoteAddress,
+                Ipv4Address localAddress,
+                uint16_t remotePort,
+                uint16_t localPort,
+                uint8_t typeOfService);
 
-    /** 
-     * 
-     * \param direction 
-     * \param remoteAddress 
-     * \param localAddress 
-     * \param remotePort 
-     * \param localPort 
-     * \param typeOfService 
-     * 
-     * \return true if any PacketFilter in the TFT matches with the
-     * parameters, false otherwise.
-     */
-    bool Matches (Direction direction,
-		  Ipv4Address remoteAddress, 
-		  Ipv4Address localAddress, 
-		  uint16_t remotePort,
-		  uint16_t localPort,
-		  uint8_t typeOfService);
+  /**
+   *
+   * \param direction
+   * \param remoteAddress
+   * \param localAddress
+   * \param remotePort
+   * \param localPort
+   * \param typeOfService
+   *
+   * \return true if any PacketFilter in the TFT matches with the
+   * parameters, false otherwise.
+   */
+  bool Matches (Direction direction,
+                Ipv6Address remoteAddress,
+                Ipv6Address localAddress,
+                uint16_t remotePort,
+                uint16_t localPort,
+                uint8_t typeOfService);
 
 
 private:

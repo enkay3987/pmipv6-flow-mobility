@@ -680,7 +680,7 @@ LteHelper::Attach (Ptr<NetDevice> ueDevice)
 
   // activate default EPS bearer
   m_epcHelper->ActivateEpsBearer (ueDevice, ueLteDevice->GetImsi (),
-                                  EpcTft::Default (),
+                                  EpcTft::Default (true),
                                   EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
 }
 
@@ -709,7 +709,7 @@ LteHelper::Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice)
   if (m_epcHelper != 0)
     {
       // activate default EPS bearer
-      m_epcHelper->ActivateEpsBearer (ueDevice, ueLteDevice->GetImsi (), EpcTft::Default (), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+      m_epcHelper->ActivateEpsBearer (ueDevice, ueLteDevice->GetImsi (), EpcTft::Default (true), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
   // tricks needed for the simplified LTE-only simulations 

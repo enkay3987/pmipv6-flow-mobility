@@ -133,6 +133,18 @@ public:
    */
   void SetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint32_t gtpTeid, Ipv4Address transportLayerAddress);
 
+  /**
+   * Setup a new data radio bearer, including both the configuration
+   * within the eNB and the necessary RRC signaling with the UE
+   *
+   * \param bearer the QoS characteristics of the bearer
+   * \param bearerId the EPS bearer identifier
+   * \param gtpTeid S1-bearer GTP tunnel endpoint identifier, see 36.423 9.2.1
+   * \param transportLayerAddress  IP Address of the SGW, see 36.423 9.2.1
+   *
+   */
+  void SetupDataRadioBearer (EpsBearer bearer, uint8_t bearerId, uint32_t gtpTeid, Ipv6Address transportLayerAddress6);
+
   /** 
    * Start all configured data radio bearers. It is safe to call this
    * method if any bearer had been already started previously.

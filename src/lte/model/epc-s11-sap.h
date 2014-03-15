@@ -48,7 +48,9 @@ public:
   struct Fteid 
   {
     uint32_t teid;
+    bool isIpv4;
     Ipv4Address address;
+    Ipv6Address address6;
   };
 
   /**
