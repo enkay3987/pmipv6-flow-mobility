@@ -301,7 +301,7 @@ EpcX2HandoverRequestHeader::Deserialize (Buffer::Iterator start)
       erabItem.gtpTeid = i.ReadNtohU32 ();
 
       m_erabsToBeSetupList.push_back (erabItem);
-      m_headerLength += 48;
+      m_headerLength += 60;
     }
 
   return GetSerializedSize ();
@@ -394,7 +394,7 @@ EpcX2HandoverRequestHeader::GetBearers () const
 void
 EpcX2HandoverRequestHeader::SetBearers (std::vector <EpcX2Sap::ErabToBeSetupItem> bearers)
 {
-  m_headerLength += 48 * bearers.size ();
+  m_headerLength += 60 * bearers.size ();
   m_erabsToBeSetupList = bearers;
 }
 
