@@ -644,17 +644,17 @@ LteHelper::InstallSingleUeDevice (Ptr<Node> n)
 
 
 void
-LteHelper::Attach (NetDeviceContainer ueDevices)
+LteHelper::Attach (NetDeviceContainer ueDevices, bool isIpv4)
 {
   NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator i = ueDevices.Begin (); i != ueDevices.End (); ++i)
     {
-      Attach (*i);
+      Attach (*i, isIpv4);
     }
 }
 
 void
-LteHelper::Attach (Ptr<NetDevice> ueDevice)
+LteHelper::Attach (Ptr<NetDevice> ueDevice, bool isIpv4)
 {
   NS_LOG_FUNCTION (this);
 
@@ -680,22 +680,22 @@ LteHelper::Attach (Ptr<NetDevice> ueDevice)
 
   // activate default EPS bearer
   m_epcHelper->ActivateEpsBearer (ueDevice, ueLteDevice->GetImsi (),
-                                  EpcTft::Default (true),
+                                  EpcTft::Default (isIpv4),
                                   EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
 }
 
 void
-LteHelper::Attach (NetDeviceContainer ueDevices, Ptr<NetDevice> enbDevice)
+LteHelper::Attach (NetDeviceContainer ueDevices, Ptr<NetDevice> enbDevice, bool isIpv4)
 {
   NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator i = ueDevices.Begin (); i != ueDevices.End (); ++i)
     {
-      Attach (*i, enbDevice);
+      Attach (*i, enbDevice, isIpv4);
     }
 }
 
 void
-LteHelper::Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice)
+LteHelper::Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, bool isIpv4)
 {
   NS_LOG_FUNCTION (this);
   //enbRrc->SetCellId (enbDevice->GetObject<LteEnbNetDevice> ()->GetCellId ());
@@ -709,7 +709,7 @@ LteHelper::Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice)
   if (m_epcHelper != 0)
     {
       // activate default EPS bearer
-      m_epcHelper->ActivateEpsBearer (ueDevice, ueLteDevice->GetImsi (), EpcTft::Default (true), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
+      m_epcHelper->ActivateEpsBearer (ueDevice, ueLteDevice->GetImsi (), EpcTft::Default (isIpv4), EpsBearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT));
     }
 
   // tricks needed for the simplified LTE-only simulations 
@@ -720,17 +720,17 @@ LteHelper::Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice)
 }
 
 void
-LteHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices)
+LteHelper::AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices, bool isIpv4)
 {
   NS_LOG_FUNCTION (this);
   for (NetDeviceContainer::Iterator i = ueDevices.Begin (); i != ueDevices.End (); ++i)
     {
-      AttachToClosestEnb (*i, enbDevices);
+      AttachToClosestEnb (*i, enbDevices, isIpv4);
     }
 }
 
 void
-LteHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices)
+LteHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices, bool isIpv4)
 {
   NS_LOG_FUNCTION (this);
   NS_ASSERT_MSG (enbDevices.GetN () > 0, "empty enb device container");
@@ -748,7 +748,7 @@ LteHelper::AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDe
         }
     }
   NS_ASSERT (closestEnbDevice != 0);
-  Attach (ueDevice, closestEnbDevice);
+  Attach (ueDevice, closestEnbDevice, isIpv4);
 }
 
 void

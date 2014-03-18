@@ -20,7 +20,7 @@
  *         Manuel Requena <manuel.requena@cttc.es>
  */
 
-#include <point-to-point-epc6-helper.h>
+#include "point-to-point-epc6-helper.h"
 #include <ns3/log.h>
 #include <ns3/inet-socket-address.h>
 #include <ns3/mac48-address.h>
@@ -31,7 +31,7 @@
 #include <ns3/packet-socket-helper.h>
 #include <ns3/packet-socket-address.h>
 #include <ns3/epc-enb-application.h>
-#include <epc6-sgw-pgw-application.h>
+#include "ns3/epc6-sgw-pgw-application.h"
 
 #include <ns3/lte-enb-rrc.h>
 #include <ns3/epc-x2.h>
@@ -39,6 +39,8 @@
 #include <ns3/lte-ue-net-device.h>
 #include <ns3/epc-mme.h>
 #include <ns3/epc-ue-nas.h>
+#include "ns3/boolean.h"
+#include "ns3/config.h"
 
 namespace ns3 {
 
@@ -54,6 +56,7 @@ PointToPointEpc6Helper::PointToPointEpc6Helper ()
 {
   NS_LOG_FUNCTION (this);
 
+  Config::SetDefault ("ns3::Ipv6::IpForward", BooleanValue (true));
   m_s1uIpv6AddressHelper.SetBase ("a0::", 64);
 
   m_x2Ipv6AddressHelper.SetBase ("a1::", 64);
@@ -112,7 +115,7 @@ TypeId
 PointToPointEpc6Helper::GetTypeId (void)
 {
   static TypeId tid = TypeId ("ns3::PointToPointEpc6Helper")
-    .SetParent<Epc6Helper> ()
+    .SetParent<EpcHelper> ()
     .AddConstructor<PointToPointEpc6Helper> ()
     .AddAttribute ("S1uLinkDataRate", 
                    "The data rate to be used for the next S1-U link to be created",

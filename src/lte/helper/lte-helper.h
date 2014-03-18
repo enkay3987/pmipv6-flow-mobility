@@ -212,6 +212,8 @@ public:
    * \brief Enables automatic attachment of a set of UE devices to a suitable
    *        cell using Idle mode initial cell selection procedure.
    * \param ueDevices the set of UE devices to be attached
+   * \param isIpv4 defines if the attachment is of Ipv4 or Ipv6. Basically used
+   * to create the default tft.
    *
    * By calling this, the UE will start the initial cell selection procedure at
    * the beginning of simulation. In addition, the function also instructs each
@@ -225,12 +227,14 @@ public:
    *
    * Note that this function can only be used in EPC-enabled simulation.
    */
-  void Attach (NetDeviceContainer ueDevices);
+  void Attach (NetDeviceContainer ueDevices, bool isIpv4 = true);
 
   /**
    * \brief Enables automatic attachment of a UE device to a suitable cell
    *        using Idle mode initial cell selection procedure.
    * \param ueDevice the UE device to be attached
+   * \param isIpv4 defines if the attachment is of Ipv4 or Ipv6. Basically used
+   * to create the default tft.
    *
    * By calling this, the UE will start the initial cell selection procedure at
    * the beginning of simulation. In addition, the function also instructs the
@@ -244,13 +248,15 @@ public:
    *
    * Note that this function can only be used in EPC-enabled simulation.
    */
-  void Attach (Ptr<NetDevice> ueDevice);
+  void Attach (Ptr<NetDevice> ueDevice, bool isIpv4 = true);
 
   /**
    * \brief Manual attachment of a set of UE devices to the network via a given
    *        eNodeB.
    * \param ueDevices the set of UE devices to be attached
    * \param enbDevice the destination eNodeB device
+   * \param isIpv4 defines if the attachment is of Ipv4 or Ipv6. Basically used
+   * to create the default tft.
    *
    * In addition, the function also instructs each UE to immediately enter
    * CONNECTED mode and activates the default EPS bearer.
@@ -259,12 +265,14 @@ public:
    * Note that this function will disable Idle mode initial cell selection
    * procedure.
    */
-  void Attach (NetDeviceContainer ueDevices, Ptr<NetDevice> enbDevice);
+  void Attach (NetDeviceContainer ueDevices, Ptr<NetDevice> enbDevice, bool isIpv4 = true);
 
   /**
    * \brief Manual attachment of a UE device to the network via a given eNodeB.
    * \param ueDevice the UE device to be attached
    * \param enbDevice the destination eNodeB device
+   * \param isIpv4 defines if the attachment is of Ipv4 or Ipv6. Basically used
+   * to create the default tft.
    *
    * In addition, the function also instructs the UE to immediately enter
    * CONNECTED mode and activates the default EPS bearer.
@@ -273,13 +281,15 @@ public:
    * Note that this function will disable Idle mode initial cell selection
    * procedure.
    */
-  void Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice);
+  void Attach (Ptr<NetDevice> ueDevice, Ptr<NetDevice> enbDevice, bool isIpv4 = true);
 
   /** 
    * \brief Manual attachment of a set of UE devices to the network via the
    *        closest eNodeB (with respect to distance) among those in the set.
    * \param ueDevices the set of UE devices to be attached
    * \param enbDevices the set of eNodeB devices to be considered
+   * \param isIpv4 defines if the attachment is of Ipv4 or Ipv6. Basically used
+   * to create the default tft.
    * 
    * This function finds among the eNodeB set the closest eNodeB for each UE,
    * and then invokes manual attachment between the pair.
@@ -289,13 +299,15 @@ public:
    * 
    * \sa LteHelper::Attach(NetDeviceContainer ueDevices);
    */
-  void AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices);
+  void AttachToClosestEnb (NetDeviceContainer ueDevices, NetDeviceContainer enbDevices, bool isIpv4 = true);
 
   /** 
    * \brief Manual attachment of a UE device to the network via the closest
    *        eNodeB (with respect to distance) among those in the set.
    * \param ueDevice the UE device to be attached
    * \param enbDevices the set of eNodeB devices to be considered
+   * \param isIpv4 defines if the attachment is of Ipv4 or Ipv6. Basically used
+   * to create the default tft.
    *
    * This function finds among the eNodeB set the closest eNodeB for the UE,
    * and then invokes manual attachment between the pair.
@@ -305,7 +317,7 @@ public:
    *
    * \sa LteHelper::Attach(Ptr<NetDevice> ueDevice);
    */
-  void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices);
+  void AttachToClosestEnb (Ptr<NetDevice> ueDevice, NetDeviceContainer enbDevices, bool isIpv4 = true);
 
   /**
    * Activate a dedicated EPS bearer on a given set of UE devices
