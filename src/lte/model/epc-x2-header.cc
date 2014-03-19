@@ -20,6 +20,7 @@
 
 #include "ns3/log.h"
 #include "ns3/epc-x2-header.h"
+#include "ns3/address-utils.h"
 
 
 NS_LOG_COMPONENT_DEFINE ("EpcX2Header");
@@ -235,7 +236,11 @@ EpcX2HandoverRequestHeader::Serialize (Buffer::Iterator start) const
       i.WriteU8 (m_erabsToBeSetupList [j].erabLevelQosParameters.arp.preemptionCapability);
       i.WriteU8 (m_erabsToBeSetupList [j].erabLevelQosParameters.arp.preemptionVulnerability);
       i.WriteU8 (m_erabsToBeSetupList [j].dlForwarding);
-      i.WriteHtonU32 (m_erabsToBeSetupList [j].transportLayerAddress.Get ());
+      i.WriteU8 (uint8_t (m_erabsToBeSetupList [j].isIpv4));
+      if (m_erabsToBeSetupList [j].isIpv4)
+        i.WriteHtonU32 (m_erabsToBeSetupList [j].transportLayerAddress.Get ());
+      else
+        WriteTo (i, m_erabsToBeSetupList [j].transportLayerAddress6);
       i.WriteHtonU32 (m_erabsToBeSetupList [j].gtpTeid);
     }
 
@@ -296,11 +301,18 @@ EpcX2HandoverRequestHeader::Deserialize (Buffer::Iterator start)
       erabItem.erabLevelQosParameters.arp.preemptionVulnerability = i.ReadU8 ();
 
       erabItem.dlForwarding = i.ReadU8 ();
-      erabItem.transportLayerAddress = Ipv4Address (i.ReadNtohU32 ());
+      erabItem.isIpv4 = bool (i.ReadU8 ());
+      if (erabItem.isIpv4)
+        erabItem.transportLayerAddress = Ipv4Address (i.ReadNtohU32 ());
+      else
+        ReadFrom (i, erabItem.transportLayerAddress6);
       erabItem.gtpTeid = i.ReadNtohU32 ();
 
       m_erabsToBeSetupList.push_back (erabItem);
-      m_headerLength += 48;
+      if (erabItem.isIpv4)
+        m_headerLength += 49;
+      else
+        m_headerLength += 61;
     }
 
   return GetSerializedSize ();
@@ -393,7 +405,9 @@ EpcX2HandoverRequestHeader::GetBearers () const
 void
 EpcX2HandoverRequestHeader::SetBearers (std::vector <EpcX2Sap::ErabToBeSetupItem> bearers)
 {
-  m_headerLength += 48 * bearers.size ();
+  for (std::vector <EpcX2Sap::ErabToBeSetupItem>::iterator it = bearers.begin (); it != bearers.end (); it++)
+    m_headerLength += (it->isIpv4 ? 49 : 61);
+//  m_headerLength += 48 * bearers.size ();
   m_erabsToBeSetupList = bearers;
 }
 

@@ -24,6 +24,7 @@
 #include "ns3/packet.h"
 #include "ns3/eps-bearer.h"
 #include "ns3/ipv4-address.h"
+#include "ns3/ipv6-address.h"
 
 #include <bitset>
 
@@ -61,7 +62,9 @@ public:
     uint16_t    erabId;
     EpsBearer   erabLevelQosParameters;
     bool        dlForwarding;
+    bool        isIpv4;
     Ipv4Address transportLayerAddress;
+    Ipv6Address transportLayerAddress6;
     uint32_t    gtpTeid;
 
     ErabToBeSetupItem ();

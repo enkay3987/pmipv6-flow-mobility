@@ -771,7 +771,9 @@ UeManager::GetErabList ()
       etbsi.erabId = it->second->m_epsBearerIdentity;
       etbsi.erabLevelQosParameters = it->second->m_epsBearer;
       etbsi.dlForwarding = false;
+      etbsi.isIpv4 = it->second->m_isIpv4;
       etbsi.transportLayerAddress = it->second->m_transportLayerAddress;
+      etbsi.transportLayerAddress6 = it->second->m_transportLayerAddress6;
       etbsi.gtpTeid = it->second->m_gtpTeid;
       ret.push_back (etbsi);      
     }
@@ -1951,7 +1953,10 @@ LteEnbRrc::DoRecvHandoverRequest (EpcX2SapUser::HandoverRequestParams req)
        it != req.bearers.end ();
        ++it)
     {
-      ueManager->SetupDataRadioBearer (it->erabLevelQosParameters, it->erabId, it->gtpTeid, it->transportLayerAddress);
+      if (it->isIpv4)
+        ueManager->SetupDataRadioBearer (it->erabLevelQosParameters, it->erabId, it->gtpTeid, it->transportLayerAddress);
+      else
+        ueManager->SetupDataRadioBearer (it->erabLevelQosParameters, it->erabId, it->gtpTeid, it->transportLayerAddress6);
       EpcX2Sap::ErabAdmittedItem i;
       i.erabId = it->erabId;
       ackParams.admittedBearers.push_back (i);
