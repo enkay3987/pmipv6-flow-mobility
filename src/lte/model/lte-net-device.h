@@ -90,6 +90,7 @@ public:
 protected:
   
   NetDevice::ReceiveCallback m_rxCallback;
+  TracedCallback<Ptr<const Packet> > m_snifferTrace;
   
 private:
   LteNetDevice (const LteNetDevice &);

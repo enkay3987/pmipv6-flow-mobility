@@ -28,6 +28,7 @@
 #include <ns3/data-rate.h>
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
+#include "ns3/trace-helper.h"
 
 namespace ns3 {
 
@@ -45,7 +46,7 @@ class EpcMme;
  * allow to create EPC entities and the nodes and interfaces that host
  * and connect them. 
  */
-class EpcHelper : public Object
+class EpcHelper : public Object, public PcapHelperForDevice
 {
 public:
   
@@ -113,6 +114,19 @@ public:
    * interface of the PGW, i.e., to connect the PGW to the internet.
    */
   virtual Ptr<Node> GetPgwNode () = 0;
+
+  /**
+   * \brief Enable pcap output the indicated net device.
+   *
+   * NetDevice-specific implementation mechanism for hooking the trace and
+   * writing to the trace file.
+   *
+   * \param prefix Filename prefix to use for pcap files.
+   * \param nd Net device for which you want to enable tracing.
+   * \param promiscuous If true capture all possible packets available at the device.
+   * \param explicitFilename Treat the prefix as an explicit filename if true
+   */
+  virtual void EnablePcapInternal (std::string prefix, Ptr<NetDevice> nd, bool promiscuous, bool explicitFilename);
 
 };
 

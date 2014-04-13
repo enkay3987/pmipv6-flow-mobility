@@ -44,6 +44,7 @@
 #include <ns3/ipv6-l3-protocol.h>
 #include <ns3/log.h>
 #include "epc-tft.h"
+#include "ns3/ppp-header.h"
 
 NS_LOG_COMPONENT_DEFINE ("LteUeNetDevice");
 
@@ -258,7 +259,15 @@ LteUeNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocol
     {
       NS_LOG_INFO("unsupported protocol " << protocolNumber);
       return true;
-    }  
+    }
+  Ptr<Packet> pCopy = packet->Copy ();
+  PppHeader pppHeader;
+  if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
+    pppHeader.SetProtocol (0x0021);
+  else
+    pppHeader.SetProtocol (0x0057);
+  pCopy->AddHeader (pppHeader);
+  m_snifferTrace (pCopy);
   return m_nas->Send (packet);
 }
 

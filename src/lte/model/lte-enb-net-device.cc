@@ -44,6 +44,7 @@
 #include <ns3/ipv6-l3-protocol.h>
 #include <ns3/abort.h>
 #include <ns3/log.h>
+#include "ns3/ppp-header.h"
 
 NS_LOG_COMPONENT_DEFINE ("LteEnbNetDevice");
 
@@ -336,6 +337,14 @@ LteEnbNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protoco
 {
   NS_LOG_FUNCTION (this << packet << dest << protocolNumber);
   NS_ASSERT_MSG (protocolNumber == Ipv4L3Protocol::PROT_NUMBER || protocolNumber == Ipv6L3Protocol::PROT_NUMBER, "unsupported protocol " << protocolNumber);
+  Ptr<Packet> pCopy = packet->Copy ();
+  PppHeader pppHeader;
+  if (protocolNumber == Ipv4L3Protocol::PROT_NUMBER)
+    pppHeader.SetProtocol (0x0021);
+  else
+    pppHeader.SetProtocol (0x0057);
+  pCopy->AddHeader (pppHeader);
+  m_snifferTrace (pCopy);
   return m_rrc->SendData (packet);
 }
 

@@ -36,6 +36,7 @@
 #include <ns3/ipv4-l3-protocol.h>
 #include <ns3/ipv6-l3-protocol.h>
 #include <ns3/log.h>
+#include "ns3/ppp-header.h"
 
 NS_LOG_COMPONENT_DEFINE ("LteNetDevice");
 
@@ -61,6 +62,9 @@ TypeId LteNetDevice::GetTypeId (void)
                    MakeUintegerAccessor (&LteNetDevice::SetMtu,
                                          &LteNetDevice::GetMtu),
                    MakeUintegerChecker<uint16_t> ())
+    .AddTraceSource ("Sniffer",
+                     "Trace source simulating a packet sniffer attached to the device",
+                     MakeTraceSourceAccessor (&LteNetDevice::m_snifferTrace))
   ;
   return tid;
 }
@@ -291,11 +295,25 @@ LteNetDevice::Receive (Ptr<Packet> p)
   switch (version)
     {
     case 4:
-      m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
-      break;
+      {
+        Ptr<Packet> pCopy = p->Copy ();
+        PppHeader pppHeader;
+        pppHeader.SetProtocol (0x0021);
+        pCopy->AddHeader (pppHeader);
+        m_snifferTrace (pCopy);
+        m_rxCallback (this, p, Ipv4L3Protocol::PROT_NUMBER, Address ());
+        break;
+      }
     case 6:
-      m_rxCallback (this, p, Ipv6L3Protocol::PROT_NUMBER, Address ());
-      break;
+      {
+        Ptr<Packet> pCopy = p->Copy ();
+        PppHeader pppHeader;
+        pppHeader.SetProtocol (0x0057);
+        pCopy->AddHeader (pppHeader);
+        m_snifferTrace (pCopy);
+        m_rxCallback (this, p, Ipv6L3Protocol::PROT_NUMBER, Address ());
+        break;
+      }
     default:
       break;
     }
