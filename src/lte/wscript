@@ -108,6 +108,8 @@ def build(bld):
         'model/no-op-handover-algorithm.cc',
         'model/lte-anr-sap.cc',
         'model/lte-anr.cc',
+        'model/epc6-sgw-application.cc',
+        'helper/point-to-point-epc6-pmipv6-helper.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('lte')
@@ -264,6 +266,8 @@ def build(bld):
         'model/no-op-handover-algorithm.h',
         'model/lte-anr-sap.h',
         'model/lte-anr.h',
+        'model/epc6-sgw-application.h',
+        'helper/point-to-point-epc6-pmipv6-helper.h',
         ]
 
     if (bld.env['ENABLE_EXAMPLES']):
