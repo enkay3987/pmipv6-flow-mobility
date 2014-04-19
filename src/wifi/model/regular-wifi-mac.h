@@ -230,6 +230,8 @@ public:
   virtual void SetCompressedBlockAckTimeout (Time blockAckTimeout);
   virtual Time GetCompressedBlockAckTimeout (void) const;
 
+  virtual void SetNewHostCallback (Callback<void, Mac48Address, Mac48Address, uint8_t> newHost);
+
 protected:
   virtual void DoInitialize ();
   virtual void DoDispose ();
@@ -245,6 +247,8 @@ protected:
   ForwardUpCallback m_forwardUp; //!< Callback to forward packet up the stack
   Callback<void> m_linkUp; //!< Callback when a link is up
   Callback<void> m_linkDown; //!< Callback when a link is down
+
+  Callback<void, Mac48Address, Mac48Address, uint8_t> m_newHostCallback;
 
   Ssid m_ssid; //!< Service Set ID (SSID)
 

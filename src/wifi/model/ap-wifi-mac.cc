@@ -445,6 +445,10 @@ ApWifiMac::TxOk (const WifiMacHeader &hdr)
     {
       NS_LOG_DEBUG ("associated with sta=" << hdr.GetAddr1 ());
       m_stationManager->RecordGotAssocTxOk (hdr.GetAddr1 ());
+      if (!m_newHostCallback.IsNull ())
+        {
+          m_newHostCallback (hdr.GetAddr1 (), GetAddress (), 4 /* WIFI */);
+        }
     }
 }
 
