@@ -42,7 +42,7 @@
 namespace ns3
 {
 
-NS_LOG_COMPONENT_DEFINE ("UnicastRadvdApplication");
+NS_LOG_COMPONENT_DEFINE ("UnicastRadvd");
 
 NS_OBJECT_ENSURE_REGISTERED (UnicastRadvd);
 
@@ -50,19 +50,8 @@ TypeId UnicastRadvd::GetTypeId ()
 {
   static TypeId tid = TypeId ("ns3::UnicastRadvd")
     .SetParent<Application> ()
-    .AddConstructor<UnicastRadvd> ()
     ;
   return tid;
-}
-
-UnicastRadvd::UnicastRadvd ()
-{
-  NS_LOG_FUNCTION_NOARGS ();
-}
-
-UnicastRadvd::~UnicastRadvd ()
-{
-  NS_LOG_FUNCTION_NOARGS ();
 }
 
 void UnicastRadvd::DoDispose ()
@@ -73,7 +62,6 @@ void UnicastRadvd::DoDispose ()
       *it = 0;
     }
   m_configurations.clear ();
-  m_socket = 0;
   Application::DoDispose ();
 }
 
@@ -81,50 +69,37 @@ void UnicastRadvd::StartApplication ()
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  if (!m_socket)
-    {
-      TypeId tid = TypeId::LookupByName ("ns3::PacketSocketFactory");
-      m_socket = Socket::CreateSocket (GetNode (), tid);
-      NS_ASSERT (m_socket);
-      m_socket->Bind ();
-      m_socket->ShutdownRecv ();
-    }
-
-  for (RadvdInterfaceListCI it = m_configurations.begin (); it != m_configurations.end (); it++)
-    {
-      m_eventIds[(*it)->GetId ()] = EventId ();
-      ScheduleTransmit (Seconds (0.), (*it), m_eventIds[(*it)->GetId ()], Ipv6Address::GetAllNodesMulticast (), true); 
-    }
+//  for (RadvdInterfaceListCI it = m_configurations.begin () ; it != m_configurations.end () ; it++)
+//    {
+//      m_eventIds[(*it)->GetId ()] = EventId ();
+//      ScheduleTransmit (Seconds (0.), (*it), m_eventIds[(*it)->GetId ()], Ipv6Address::GetAllNodesMulticast (), true);
+//    }
 }
 
 void UnicastRadvd::StopApplication ()
 {
   NS_LOG_FUNCTION_NOARGS ();
   
-  if (m_socket)
-    {
-      m_socket->SetRecvCallback (MakeNullCallback<void, Ptr<Socket> > ());
-    }
-  for (EventIdMapI it = m_eventIds.begin () ; it != m_eventIds.end () ; ++it)
-    {
-      Simulator::Cancel ((*it).second);
-    }
-  m_eventIds.clear ();
+//  for (EventIdMapI it = m_eventIds.begin () ; it != m_eventIds.end () ; ++it)
+//    {
+//      Simulator::Cancel ((*it).second);
+//    }
+//  m_eventIds.clear ();
 }
 
 void UnicastRadvd::AddConfiguration (Ptr<UnicastRadvdInterface> routerInterface)
 {
-  NS_LOG_FUNCTION (this << routerInterface);
+  NS_LOG_FUNCTION ( this << routerInterface );
   
   m_configurations.push_back (routerInterface);
-  if (m_socket)
+  if (IsAppStarted ())
     {
       NS_LOG_LOGIC ("Application is already started. Adding and Scheduling.");
-      if (m_eventIds.find (routerInterface->GetId ()) != m_eventIds.end ())
+      if (m_eventIds.find(routerInterface->GetId()) != m_eventIds.end() )
         {
-          m_eventIds[routerInterface->GetId ()].Cancel ();
+          m_eventIds[routerInterface->GetId()].Cancel();
         }
-      m_eventIds[routerInterface->GetId ()] = EventId ();
+      m_eventIds[routerInterface->GetId()] = EventId();
       ScheduleTransmit (Seconds (0.), routerInterface, m_eventIds[routerInterface->GetId ()], Ipv6Address::GetAllNodesMulticast (), true); 
     }
 }
@@ -133,20 +108,20 @@ void UnicastRadvd::RemoveConfiguration (Ptr<UnicastRadvdInterface> routerInterfa
 {
   NS_LOG_FUNCTION ( this << routerInterface );
   
-  if (m_eventIds.find (routerInterface->GetId ()) != m_eventIds.end ())
+  if ( m_eventIds.find(routerInterface->GetId()) != m_eventIds.end() )
     {
-      m_eventIds[routerInterface->GetId ()].Cancel ();
+      m_eventIds[routerInterface->GetId()].Cancel();
     }
   m_configurations.remove (routerInterface);
 }
 
 void UnicastRadvd::RemoveConfiguration (int32_t ifIndex)
 {
-  NS_LOG_FUNCTION (this << ifIndex);
+  NS_LOG_FUNCTION ( this << ifIndex );
   
-  for (RadvdInterfaceListI i = m_configurations.begin (); i != m_configurations.end (); i++)
+  for ( RadvdInterfaceListI i = m_configurations.begin(); i != m_configurations.end(); i++ )
     {
-      if ((*i)->GetId () == (uint32_t) ifIndex)
+      if((*i)->GetId() == (uint32_t)ifIndex)
         {
           RemoveConfiguration ((*i));
           return;
@@ -158,129 +133,6 @@ void UnicastRadvd::ScheduleTransmit (Time dt, Ptr<UnicastRadvdInterface> config,
 {
   NS_LOG_FUNCTION (this << dt);
   eventId = Simulator::Schedule (dt, &UnicastRadvd::Send, this, config, dst, reschedule);
-}
-
-void UnicastRadvd::Send (Ptr<UnicastRadvdInterface> config, Ipv6Address dst, bool reschedule)
-{
-  NS_LOG_FUNCTION (this << dst);
-  NS_ASSERT (m_eventIds[config->GetId ()].IsExpired ());
-  
-  Ipv6Header ipv6Hdr;
-  
-  Icmpv6RA raHdr;
-  Icmpv6OptionLinkLayerAddress llaHdr;
-  Icmpv6OptionMtu mtuHdr;
-  Icmpv6OptionPrefixInformation prefixHdr;
-
-  if (m_eventIds.size () == 0)
-    {
-      return;
-    }
-
-  std::list<Ptr<RadvdPrefix> > prefixes = config->GetPrefixes ();
-  Ptr<Packet> p = Create<Packet> ();
-  Ptr<Ipv6> ipv6 = GetNode ()->GetObject<Ipv6> ();
-
-  /* set RA header information */
-  raHdr.SetFlagM (config->IsManagedFlag ());
-  raHdr.SetFlagO (config->IsOtherConfigFlag ());
-  raHdr.SetFlagH (config->IsHomeAgentFlag ());
-  raHdr.SetCurHopLimit (config->GetCurHopLimit ());
-  raHdr.SetLifeTime (config->GetDefaultLifeTime ());
-  raHdr.SetReachableTime (config->GetReachableTime ());
-  raHdr.SetRetransmissionTime (config->GetRetransTimer ());
-
-  if (config->IsSourceLLAddress ())
-    {
-      /* Get L2 address from NetDevice */
-      Address addr = ipv6->GetNetDevice (config->GetInterface ())->GetAddress ();
-      llaHdr = Icmpv6OptionLinkLayerAddress (true, addr);
-      p->AddHeader (llaHdr);
-    }
-
-  if (config->GetLinkMtu ())
-    {
-      NS_ASSERT (config->GetLinkMtu () >= 1280);
-      mtuHdr = Icmpv6OptionMtu (config->GetLinkMtu ());
-      p->AddHeader (mtuHdr);
-    }
-
-  /* add list of prefixes */
-  for (std::list<Ptr<RadvdPrefix> >::const_iterator jt = prefixes.begin () ; jt != prefixes.end () ; jt++)
-    {
-      uint8_t flags = 0;
-      prefixHdr = Icmpv6OptionPrefixInformation ();
-      prefixHdr.SetPrefix ((*jt)->GetNetwork ());
-      prefixHdr.SetPrefixLength ((*jt)->GetPrefixLength ());
-      prefixHdr.SetValidTime ((*jt)->GetValidLifeTime ());
-      prefixHdr.SetPreferredTime ((*jt)->GetPreferredLifeTime ());
-
-      if ((*jt)->IsOnLinkFlag ())
-        {
-          flags += 1 << 7;
-        }
-
-      if ((*jt)->IsAutonomousFlag ())
-        {
-          flags += 1 << 6;
-        }
-
-      if ((*jt)->IsRouterAddrFlag ())
-        {
-          flags += 1 << 5;
-        }
-
-      prefixHdr.SetFlags (flags);
-
-      p->AddHeader (prefixHdr);
-    }
-
-  Ipv6Address src = ipv6->GetAddress (config->GetInterface (), 0).GetAddress ();
-
-  /* as we know interface index that will be used to send RA and 
-   * we always send RA with router's link-local address, we can 
-   * calculate checksum here.
-   */
-  raHdr.CalculatePseudoHeaderChecksum (src, dst, p->GetSize () + raHdr.GetSerializedSize (), 58 /* ICMPv6 */);
-  p->AddHeader (raHdr);
-
-  ipv6Hdr.SetSourceAddress (src);
-  ipv6Hdr.SetDestinationAddress (dst);
-  ipv6Hdr.SetNextHeader (58 /* ICMPv6 */);
-  ipv6Hdr.SetPayloadLength (p->GetSize());
-  ipv6Hdr.SetHopLimit (255);
-  
-  p->AddHeader (ipv6Hdr);
-  
-  PacketSocketAddress target;
-
-  target.SetSingleDevice(ipv6->GetNetDevice(config->GetInterface())->GetIfIndex());
-  target.SetPhysicalAddress (config->GetPhysicalAddress());
-  target.SetProtocol (0x86dd /* Ipv6 */);
-  
-  Ptr<NetDevice> dev = ipv6->GetNetDevice(config->GetInterface());
-  
-  NS_LOG_LOGIC ("Netdev: " << dev << ", address: " << dev->GetAddress() );
-  
-  /* send RA */
-  NS_LOG_LOGIC ("Send RA");
-  m_socket->SendTo (p, 0, target);
-
-  if (reschedule)
-    {
-      UniformVariable rnd;
-      uint64_t delay = static_cast<uint64_t> (rnd.GetValue (config->GetMinRtrAdvInterval (), config->GetMaxRtrAdvInterval ()) + 0.5);
-      NS_LOG_INFO ("Reschedule in " << delay);
-      Time t = MilliSeconds (delay);
-      ScheduleTransmit (t, config, m_eventIds[config->GetId ()], Ipv6Address::GetAllNodesMulticast (), reschedule);
-    }
-
-}
-
-void UnicastRadvd::HandleRead (Ptr<Socket> socket)
-{
-  NS_LOG_FUNCTION (this << socket);
-
 }
 
 } /* namespace ns3 */

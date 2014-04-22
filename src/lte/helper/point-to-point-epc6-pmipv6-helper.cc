@@ -32,6 +32,8 @@
 #include <ns3/packet-socket-address.h>
 #include <ns3/epc-enb-application.h>
 #include "ns3/epc6-sgw-application.h"
+#include "ns3/ipv6-static-routing.h"
+#include "ns3/ipv6-static-routing-helper.h"
 
 #include <ns3/lte-enb-rrc.h>
 #include <ns3/epc-x2.h>
@@ -53,60 +55,14 @@ PointToPointEpc6Pmipv6Helper::PointToPointEpc6Pmipv6Helper ()
   : m_gtpuUdpPort (2152)  // fixed by the standard
 {
   NS_LOG_FUNCTION (this);
+  Initialize (Mac48Address::Allocate ());
+}
 
-  m_s1uIpv6AddressHelper.SetBase ("a0::", 64);
-
-  m_x2Ipv6AddressHelper.SetBase ("a1::", 64);
-
-  m_ueAddressHelper.SetBase ("b0::", 64);
-  
-  // create SgwNode
-  m_sgw = CreateObject<Node> ();
-  InternetStackHelper internet;
-  internet.Install (m_sgw);
-  
-  Ptr<Ipv6> sgwIpv6 = m_sgw->GetObject<Ipv6> ();
-  sgwIpv6->SetAttribute ("SendIcmpv6Redirect", BooleanValue (false));
-  sgwIpv6->SetAttribute ("IpForward", BooleanValue (true));
-
-  // create S1-U socket
-  Ptr<Socket> sgwS1uSocket = Socket::CreateSocket (m_sgw, TypeId::LookupByName ("ns3::UdpSocketFactory"));
-  int retval = sgwS1uSocket->Bind (Inet6SocketAddress (Ipv6Address::GetAny (), m_gtpuUdpPort));
-  NS_ASSERT (retval == 0);
-
-  // create TUN device implementing tunnelling of user data over GTP-U/UDP/IP
-  m_tunDevice = CreateObject<VirtualNetDevice> ();
-  // allow jumbo packets
-  m_tunDevice->SetAttribute ("Mtu", UintegerValue (30000));
-
-  // yes we need this
-  m_tunDevice->SetAddress (Mac48Address::Allocate ()); 
-
-  m_sgw->AddDevice (m_tunDevice);
-  NetDeviceContainer tunDeviceContainer;
-  tunDeviceContainer.Add (m_tunDevice);
-  
-  // the TUN device is given a /32 prefix so that all the prefixes assigned
-  // to UEs fall within this network. So when a packet addressed to an UE
-  // arrives at the intenet to the WAN interface of the PGW it will be
-  // forwarded to the TUN device.
-  int32_t ifIndex = sgwIpv6->AddInterface (m_tunDevice);
-  Ipv6InterfaceAddress ipv6Addr = Ipv6InterfaceAddress (Ipv6Address::MakeAutoconfiguredAddress (Mac48Address::ConvertFrom (m_tunDevice->GetAddress ()), "b0::"), 32);
-  sgwIpv6->SetMetric (ifIndex, 1);
-  sgwIpv6->AddAddress (ifIndex, ipv6Addr);
-  sgwIpv6->SetUp (ifIndex);
-
-  // create EpcSgwApplication
-  m_sgwApp = CreateObject<Epc6SgwApplication> (m_tunDevice, sgwS1uSocket);
-  m_sgw->AddApplication (m_sgwApp);
-  
-  // connect SgwApplication and virtual net device for tunnelling
-  m_tunDevice->SetSendCallback (MakeCallback (&Epc6SgwApplication::RecvFromTunDevice, m_sgwApp));
-
-  // Create MME and connect with SGW via S11 interface
-  m_mme = CreateObject<EpcMme> ();
-  m_mme->SetS11SapSgw (m_sgwApp->GetS11SapSgw ());
-  m_sgwApp->SetS11SapMme (m_mme->GetS11SapMme ());
+PointToPointEpc6Pmipv6Helper::PointToPointEpc6Pmipv6Helper (Mac48Address tunDevMacAddress)
+  : m_gtpuUdpPort (2152)  // fixed by the standard
+{
+  NS_LOG_FUNCTION (this << tunDevMacAddress);
+  Initialize (tunDevMacAddress);
 }
 
 PointToPointEpc6Pmipv6Helper::~PointToPointEpc6Pmipv6Helper ()
@@ -131,9 +87,24 @@ PointToPointEpc6Pmipv6Helper::GetTypeId (void)
                    MakeTimeAccessor (&PointToPointEpc6Pmipv6Helper::m_s1uLinkDelay),
                    MakeTimeChecker ())
     .AddAttribute ("S1uLinkMtu", 
-                   "The MTU of the next S1-U link to be created. Note that, because of the additional GTP/UDP/IP tunneling overhead, you need a MTU larger than the end-to-end MTU that you want to support.",
+                   "The MTU of the next S5 link to be created. Note that, because of the additional GTP/UDP/IP tunneling overhead, you need a MTU larger than the end-to-end MTU that you want to support.",
                    UintegerValue (2000),
                    MakeUintegerAccessor (&PointToPointEpc6Pmipv6Helper::m_s1uLinkMtu),
+                   MakeUintegerChecker<uint16_t> ())
+    .AddAttribute ("S5LinkDataRate",
+                   "The data rate to be used for the next S1-U link to be created",
+                   DataRateValue (DataRate ("10Gb/s")),
+                   MakeDataRateAccessor (&PointToPointEpc6Pmipv6Helper::m_s5LinkDataRate),
+                   MakeDataRateChecker ())
+    .AddAttribute ("S5LinkDelay",
+                   "The delay to be used for the next S1-U link to be created",
+                   TimeValue (Seconds (0)),
+                   MakeTimeAccessor (&PointToPointEpc6Pmipv6Helper::m_s5LinkDelay),
+                   MakeTimeChecker ())
+    .AddAttribute ("S5LinkMtu",
+                   "The MTU of the next S1-U link to be created. Note that, because of the additional IP in IP tunnelling overhead, you need a MTU larger than the end-to-end MTU that you want to support.",
+                   UintegerValue (2000),
+                   MakeUintegerAccessor (&PointToPointEpc6Pmipv6Helper::m_s5LinkMtu),
                    MakeUintegerChecker<uint16_t> ())
     .AddAttribute ("X2LinkDataRate",
                    "The data rate to be used for the next X2 link to be created",
@@ -164,7 +135,6 @@ PointToPointEpc6Pmipv6Helper::DoDispose ()
   m_sgw->Dispose ();
 }
 
-
 void
 PointToPointEpc6Pmipv6Helper::AddEnb (Ptr<Node> enb, Ptr<NetDevice> lteEnbNetDevice, uint16_t cellId)
 {
@@ -189,7 +159,6 @@ PointToPointEpc6Pmipv6Helper::AddEnb (Ptr<Node> enb, Ptr<NetDevice> lteEnbNetDev
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (m_s1uLinkMtu));
   p2ph.SetChannelAttribute ("Delay", TimeValue (m_s1uLinkDelay));
   NetDeviceContainer enbSgwDevices = p2ph.Install (enb, m_sgw);
-  p2ph.EnablePcap ("enb-sgwpgw", enbSgwDevices);
   NS_LOG_LOGIC ("number of Ipv6 ifaces of the eNB after installing p2p dev: " << enb->GetObject<Ipv6> ()->GetNInterfaces ());
   Ptr<NetDevice> enbDev = enbSgwDevices.Get (0);
   Ptr<NetDevice> sgwDev = enbSgwDevices.Get (1);
@@ -240,7 +209,6 @@ PointToPointEpc6Pmipv6Helper::AddEnb (Ptr<Node> enb, Ptr<NetDevice> lteEnbNetDev
   enbApp->SetS1apSapMme (m_mme->GetS1apSapMme ());
 }
 
-
 void
 PointToPointEpc6Pmipv6Helper::AddX2Interface (Ptr<Node> enb1, Ptr<Node> enb2)
 {
@@ -287,7 +255,6 @@ PointToPointEpc6Pmipv6Helper::AddX2Interface (Ptr<Node> enb1, Ptr<Node> enb2)
   enb2LteDev->GetRrc ()->AddX2Neighbour (enb1LteDev->GetCellId ());
 }
 
-
 void 
 PointToPointEpc6Pmipv6Helper::AddUe (Ptr<NetDevice> ueDevice, uint64_t imsi)
 {
@@ -313,26 +280,113 @@ PointToPointEpc6Pmipv6Helper::ActivateEpsBearer (Ptr<NetDevice> ueDevice, uint64
 Ptr<Node>
 PointToPointEpc6Pmipv6Helper::GetPgwNode ()
 {
-  return m_sgw;
-}
-
-Ipv6InterfaceContainer
-PointToPointEpc6Pmipv6Helper::AssignUeIpv6Address (NetDeviceContainer ueDevices)
-{
-  return m_ueAddressHelper.Assign (ueDevices);
-}
-
-Ipv6Address
-PointToPointEpc6Pmipv6Helper::GetUeDefaultGatewayAddress ()
-{
-  // return the address of the tun device
-  return m_sgw->GetObject<Ipv6> ()->GetAddress (1, 1).GetAddress ();
+  return m_pgw;
 }
 
 Ipv6InterfaceContainer
 PointToPointEpc6Pmipv6Helper::AssignWithoutAddress (NetDeviceContainer ueDevices)
 {
-  return m_ueAddressHelper.AssignWithoutAddress (ueDevices);
+  Ipv6AddressHelper ueAddressHelper;
+  return ueAddressHelper.AssignWithoutAddress (ueDevices);
+}
+
+Ptr<Node>
+PointToPointEpc6Pmipv6Helper::GetSgwNode ()
+{
+  return m_sgw;
+}
+
+void
+PointToPointEpc6Pmipv6Helper::SetupS5Interface ()
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  // create a point to point link between the SGW and the PGW with
+  // the corresponding new NetDevices on each side
+  PointToPointHelper p2ph;
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (m_s5LinkDataRate));
+  p2ph.SetDeviceAttribute ("Mtu", UintegerValue (m_s5LinkMtu));
+  p2ph.SetChannelAttribute ("Delay", TimeValue (m_s5LinkDelay));
+  NetDeviceContainer sgwPgwDevices = p2ph.Install (m_sgw, m_pgw);
+  Ipv6InterfaceContainer sgwPgwIpIfaces = m_s5Ipv6AddressHelper.Assign (sgwPgwDevices);
+  Ipv6StaticRoutingHelper ipv6StaticRoutingHelper;
+  Ptr<Ipv6StaticRouting> sgwStaticRouting = ipv6StaticRoutingHelper.GetStaticRouting (m_sgw->GetObject<Ipv6> ());
+  sgwStaticRouting->SetDefaultRoute (sgwPgwIpIfaces.GetAddress (1, 1), sgwPgwIpIfaces.GetInterfaceIndex (0));
+  NS_LOG_INFO ("Set default route for SGW: to " << sgwPgwIpIfaces.GetAddress (1, 1) << " via interface " << sgwPgwIpIfaces.GetInterfaceIndex (0));
+}
+
+Ptr<Pmipv6ProfileHelper>
+PointToPointEpc6Pmipv6Helper::GetPmipv6ProfileHelper ()
+{
+  return m_pmipv6ProfileHelper;
+}
+
+void
+PointToPointEpc6Pmipv6Helper::Initialize (Mac48Address tunDevMacAddress)
+{
+  NS_LOG_FUNCTION (this << tunDevMacAddress);
+
+  m_s1uIpv6AddressHelper.SetBase ("a0::", 64);
+  m_s5Ipv6AddressHelper.SetBase ("a1::", 64);
+  m_x2Ipv6AddressHelper.SetBase ("a2::", 64);
+
+  // create SgwNode
+  m_sgw = CreateObject<Node> ();
+  InternetStackHelper internet;
+  internet.Install (m_sgw);
+
+  Ptr<Ipv6> sgwIpv6 = m_sgw->GetObject<Ipv6> ();
+  sgwIpv6->SetAttribute ("SendIcmpv6Redirect", BooleanValue (false));
+  sgwIpv6->SetAttribute ("IpForward", BooleanValue (true));
+
+  // create S1-U socket
+  Ptr<Socket> sgwS1uSocket = Socket::CreateSocket (m_sgw, TypeId::LookupByName ("ns3::UdpSocketFactory"));
+  int retval = sgwS1uSocket->Bind (Inet6SocketAddress (Ipv6Address::GetAny (), m_gtpuUdpPort));
+  NS_ASSERT (retval == 0);
+
+  // create TUN device implementing tunnelling of user data over GTP-U/UDP/IP
+  m_tunDevice = CreateObject<VirtualNetDevice> ();
+  // allow jumbo packets
+  m_tunDevice->SetAttribute ("Mtu", UintegerValue (30000));
+
+  // yes we need this, useful for link-local Ipv6 address.
+  m_tunDevice->SetAddress (tunDevMacAddress);
+  m_sgw->AddDevice (m_tunDevice);
+  NetDeviceContainer tunDeviceContainer;
+  tunDeviceContainer.Add (m_tunDevice);
+
+  int32_t ifIndex = sgwIpv6->AddInterface (m_tunDevice);
+  sgwIpv6->SetMetric (ifIndex, 1);
+  sgwIpv6->SetUp (ifIndex);
+
+  // create EpcSgwApplication
+  m_sgwApp = CreateObject<Epc6SgwApplication> (m_tunDevice, sgwS1uSocket);
+  m_sgw->AddApplication (m_sgwApp);
+
+  // connect SgwApplication and virtual net device for tunnelling
+  m_tunDevice->SetSendCallback (MakeCallback (&Epc6SgwApplication::RecvFromTunDevice, m_sgwApp));
+
+  // Create MME and connect with SGW via S11 interface
+  m_mme = CreateObject<EpcMme> ();
+  m_mme->SetS11SapSgw (m_sgwApp->GetS11SapSgw ());
+  m_sgwApp->SetS11SapMme (m_mme->GetS11SapMme ());
+
+  // Setup PGW
+  m_pgw = CreateObject<Node> ();
+  internet.Install (m_pgw);
+  Ptr<Ipv6> pgwIpv6 = m_pgw->GetObject<Ipv6> ();
+  pgwIpv6->SetAttribute ("SendIcmpv6Redirect", BooleanValue (false));
+  pgwIpv6->SetAttribute ("IpForward", BooleanValue (true));
+  Ptr<Icmpv6L4Protocol> pgwIcmpv6L4Protocol = m_pgw->GetObject<Icmpv6L4Protocol> ();
+  pgwIcmpv6L4Protocol->SetAttribute ("DAD", BooleanValue (false));
+
+  m_pmipv6ProfileHelper = Create<Pmipv6ProfileHelper> ();
+  // Add LMA functionality to PGW
+  m_pmipv6LmaHelper.SetPrefixPoolBase(Ipv6Address("b0::"), 48);
+  m_pmipv6LmaHelper.SetProfileHelper(m_pmipv6ProfileHelper);
+  m_pmipv6LmaHelper.Install (m_pgw);
+  // Add MAG functionality to SGW
+  m_pmipv6MagHelper.SetProfileHelper(m_pmipv6ProfileHelper);
+  m_pmipv6MagHelper.Install (m_sgw, true);
 }
 
 } // namespace ns3

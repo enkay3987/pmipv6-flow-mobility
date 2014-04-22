@@ -62,25 +62,72 @@ void Pmipv6Profile::DoDispose ()
   Object::DoDispose ();
 }
 
-Pmipv6Profile::Entry* Pmipv6Profile::Lookup (Identifier id)
+Pmipv6Profile::Entry* Pmipv6Profile::LookupMnId (Identifier mnId)
 {
-  NS_LOG_FUNCTION (this << id);
+  NS_LOG_FUNCTION (this << mnId);
   
-  if (m_profileList.find (id) != m_profileList.end ())
+  if (m_mnIdProfileList.find (mnId) != m_mnIdProfileList.end ())
     {
-      Pmipv6Profile::Entry* entry = m_profileList[id];
+      Pmipv6Profile::Entry* entry = m_mnIdProfileList[mnId];
       return entry;
     }
   return 0;
 }
 
-Pmipv6Profile::Entry* Pmipv6Profile::Add (Identifier id)
+Pmipv6Profile::Entry* Pmipv6Profile::LookupMnLinkId (Identifier mnLinkId)
 {
-  NS_LOG_FUNCTION (this << id);
-  NS_ASSERT (m_profileList.find (id) == m_profileList.end());
-  
-  Pmipv6Profile::Entry* entry = new Pmipv6Profile::Entry (this);
-  m_profileList[id] = entry;
+  NS_LOG_FUNCTION (this << mnLinkId);
+
+  if (m_mnLinkIdProfileList.find (mnLinkId) != m_mnLinkIdProfileList.end ())
+    {
+      Pmipv6Profile::Entry* entry = m_mnLinkIdProfileList[mnLinkId];
+      return entry;
+    }
+  return 0;
+}
+
+Pmipv6Profile::Entry* Pmipv6Profile::LookupImsi (uint64_t imsi)
+{
+  NS_LOG_FUNCTION (this << imsi);
+
+  if (m_imsiProfileList.find (imsi) != m_imsiProfileList.end ())
+    {
+      Pmipv6Profile::Entry* entry = m_imsiProfileList[imsi];
+      return entry;
+    }
+  return 0;
+}
+
+Pmipv6Profile::Entry* Pmipv6Profile::AddMnId (Identifier mnId, Pmipv6Profile::Entry *entry)
+{
+  NS_LOG_FUNCTION (this << mnId);
+  NS_ASSERT (m_mnIdProfileList.find (mnId) == m_mnIdProfileList.end());
+  // Create entry if an existing entry isn't passed.
+  if (entry == NULL)
+    entry = new Pmipv6Profile::Entry (this);
+  m_mnIdProfileList[mnId] = entry;
+  return entry;
+}
+
+Pmipv6Profile::Entry* Pmipv6Profile::AddMnLinkId (Identifier mnLinkId, Pmipv6Profile::Entry *entry)
+{
+  NS_LOG_FUNCTION (this << mnLinkId);
+  NS_ASSERT (m_mnLinkIdProfileList.find (mnLinkId) == m_mnLinkIdProfileList.end());
+  // Create entry if an existing entry isn't passed.
+  if (entry == NULL)
+    entry = new Pmipv6Profile::Entry (this);
+  m_mnLinkIdProfileList[mnLinkId] = entry;
+  return entry;
+}
+
+Pmipv6Profile::Entry* Pmipv6Profile::AddImsi (uint64_t imsi, Pmipv6Profile::Entry *entry)
+{
+  NS_LOG_FUNCTION (this << imsi);
+  NS_ASSERT (m_imsiProfileList.find (imsi) == m_imsiProfileList.end());
+  // Create entry if an existing entry isn't passed.
+  if (entry == NULL)
+    entry = new Pmipv6Profile::Entry (this);
+  m_imsiProfileList[imsi] = entry;
   return entry;
 }
 
@@ -88,27 +135,35 @@ void Pmipv6Profile::Remove (Pmipv6Profile::Entry* entry)
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  for (ProfileListI i = m_profileList.begin () ; i != m_profileList.end () ; i++)
-    {
-      if ((*i).second == entry)
-        {
-          m_profileList.erase (i);
-          delete entry;
-          return;
-        }
-    }
+  NS_ASSERT (entry != NULL);
+  Identifier mnId = entry->GetMnIdentifier ();
+  MnIdProfileListI mnIt = m_mnIdProfileList.find (mnId);
+  if (mnIt != m_mnIdProfileList.end ())
+    m_mnIdProfileList.erase (mnIt);
+
+  MnLinkIdProfileListI mnLinkIt = m_mnLinkIdProfileList.find (entry->GetMnLinkIdentifier ());
+  if (mnLinkIt != m_mnLinkIdProfileList.end ())
+    m_mnLinkIdProfileList.erase (mnLinkIt);
+
+  ImsiProfileListI imsiIt = m_imsiProfileList.find (entry->GetImsi ());
+  if (imsiIt != m_imsiProfileList.end ())
+    m_imsiProfileList.erase (imsiIt);
+
+  delete entry;
 }
 
 void Pmipv6Profile::Flush ()
 {
   NS_LOG_FUNCTION_NOARGS ();
 
-  for (ProfileListI i = m_profileList.begin () ; i != m_profileList.end () ; i++)
+  NS_LOG_INFO (m_mnIdProfileList.size ());
+  for (MnIdProfileListI i = m_mnIdProfileList.begin () ; i != m_mnIdProfileList.end () ; i++)
     {
-      delete (*i).second; /* delete the pointer Pmipv6Profile::Entry */
+      delete (*i).second;
     }
-
-  m_profileList.erase (m_profileList.begin (), m_profileList.end ());
+  m_mnIdProfileList.erase (m_mnIdProfileList.begin (), m_mnIdProfileList.end ());
+  m_mnLinkIdProfileList.erase (m_mnLinkIdProfileList.begin (), m_mnLinkIdProfileList.end ());
+  m_imsiProfileList.erase (m_imsiProfileList.begin (), m_imsiProfileList.end ());
 }
 
 Pmipv6Profile::Entry::Entry (Pmipv6Profile* pf)
@@ -143,6 +198,18 @@ void Pmipv6Profile::Entry::SetMnLinkIdentifier(Identifier mnLinkId)
   NS_LOG_FUNCTION ( this << mnLinkId );
   
   m_mnLinkIdentifier = mnLinkId;
+}
+
+uint64_t Pmipv6Profile::Entry::GetImsi () const
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  return m_imsi;
+}
+
+void Pmipv6Profile::Entry::SetImsi (uint64_t imsi)
+{
+  NS_LOG_FUNCTION (this << imsi);
+  m_imsi = imsi;
 }
 
 std::list<Ipv6Address> Pmipv6Profile::Entry::GetHomeNetworkPrefixes() const

@@ -29,17 +29,30 @@ namespace ns3
 
 uint32_t UnicastRadvdInterface::m_idGen = 1;
 
-UnicastRadvdInterface::UnicastRadvdInterface (uint32_t interface)
+UnicastRadvdInterface::UnicastRadvdInterface(uint32_t interface, enum UnicastRadvdInterface::InterfaceType interfaceType)
  : RadvdInterface(interface),
+   m_interfaceType (interfaceType),
    m_id (m_idGen++)
 {
+
 }
 
-UnicastRadvdInterface::UnicastRadvdInterface (uint32_t interface, uint32_t maxRtrAdvInterval, uint32_t minRtrAdvInterval)
- : RadvdInterface (interface, maxRtrAdvInterval, minRtrAdvInterval),
+UnicastRadvdInterface::UnicastRadvdInterface(uint32_t interface, uint32_t maxRtrAdvInterval, uint32_t minRtrAdvInterval, enum UnicastRadvdInterface::InterfaceType interfaceType)
+ : RadvdInterface(interface, maxRtrAdvInterval, minRtrAdvInterval),
+   m_interfaceType (interfaceType),
    m_id (m_idGen++)
 {
   
+}
+
+enum UnicastRadvdInterface::InterfaceType UnicastRadvdInterface::GetInterfaceType ()
+{
+  return m_interfaceType;
+}
+
+uint32_t UnicastRadvdInterface::GetId () const
+{
+  return m_id;
 }
 
 Address UnicastRadvdInterface::GetPhysicalAddress () const
@@ -52,9 +65,24 @@ void UnicastRadvdInterface::SetPhysicalAddress (Address addr)
   m_physicalAddress = addr;
 }
 
-uint32_t UnicastRadvdInterface::GetId () const
+uint32_t UnicastRadvdInterface::GetTunnelId ()
 {
-  return m_id;
+  return m_teid;
+}
+
+void UnicastRadvdInterface::SetTunnelId (uint32_t teid)
+{
+  m_teid = teid;
+}
+
+uint64_t UnicastRadvdInterface::GetImsi ()
+{
+  return m_imsi;
+}
+
+void UnicastRadvdInterface::SetImsi (uint64_t imsi)
+{
+  m_imsi = imsi;
 }
 
 }

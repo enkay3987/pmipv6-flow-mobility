@@ -29,6 +29,7 @@
 #include <ns3/epc-tft.h>
 #include <ns3/eps-bearer.h>
 #include <ns3/epc-helper.h>
+#include "ns3/pmipv6-helper.h"
 
 namespace ns3 {
 
@@ -52,9 +53,10 @@ class PointToPointEpc6Pmipv6Helper : public EpcHelper
 public:
   
   /** 
-   * Constructor
+   * Constructors
    */
   PointToPointEpc6Pmipv6Helper ();
+  PointToPointEpc6Pmipv6Helper (Mac48Address tunDevMacAddress);
 
   /** 
    * Destructor
@@ -65,28 +67,27 @@ public:
   static TypeId GetTypeId (void);
   virtual void DoDispose ();
 
-  // inherited from Epc6Helper
+  // inherited from EpcHelper
   virtual void AddEnb (Ptr<Node> enbNode, Ptr<NetDevice> lteEnbNetDevice, uint16_t cellId);
   virtual void AddUe (Ptr<NetDevice> ueLteDevice, uint64_t imsi);
   virtual void AddX2Interface (Ptr<Node> enbNode1, Ptr<Node> enbNode2);
   virtual void ActivateEpsBearer (Ptr<NetDevice> ueLteDevice, uint64_t imsi, Ptr<EpcTft> tft, EpsBearer bearer);
   virtual Ptr<Node> GetPgwNode ();
-  virtual Ipv6InterfaceContainer AssignUeIpv6Address (NetDeviceContainer ueDevices);
-  virtual Ipv6Address GetUeDefaultGatewayAddress ();
+
   Ipv6InterfaceContainer AssignWithoutAddress (NetDeviceContainer ueDevices);
+  virtual Ptr<Node> GetSgwNode ();
+  void SetupS5Interface ();
+  Ptr<Pmipv6ProfileHelper> GetPmipv6ProfileHelper ();
 
 private:
 
+  void Initialize (Mac48Address tunDevMacAddress);
   /**
    * SGW network element
    */
-
-  /** 
-   * helper to assign addresses to UE devices as well as to the TUN device of the SGW
-   */
-  Ipv6AddressHelper m_ueAddressHelper;
   
   Ptr<Node> m_sgw;
+  Ptr<Node> m_pgw;
   Ptr<Epc6SgwApplication> m_sgwApp;
   Ptr<VirtualNetDevice> m_tunDevice;
   Ptr<EpcMme> m_mme;
@@ -103,6 +104,16 @@ private:
   DataRate m_s1uLinkDataRate;
   Time     m_s1uLinkDelay;
   uint16_t m_s1uLinkMtu;
+
+  Ipv6AddressHelper m_s5Ipv6AddressHelper;
+
+  DataRate m_s5LinkDataRate;
+  Time     m_s5LinkDelay;
+  uint16_t m_s5LinkMtu;
+
+  Ptr<Pmipv6ProfileHelper> m_pmipv6ProfileHelper;
+  Pmipv6LmaHelper m_pmipv6LmaHelper;
+  Pmipv6MagHelper m_pmipv6MagHelper;
 
   /**
    * UDP port where the GTP-U Socket is bound, fixed by the standard as 2152

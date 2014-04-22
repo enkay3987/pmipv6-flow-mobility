@@ -22,15 +22,15 @@
  * Author: Hyon-Young Choi <commani@gmail.com>
  */
 
-#ifndef UNICAST_RADVD_H
-#define UNICAST_RADVD_H
+#ifndef REGULAR_UNICAST_RADVD_H
+#define REGULAR_UNICAST_RADVD_H
 
 #include <map>
 
 #include "ns3/application.h"
 #include "ns3/socket.h"
 
-#include "unicast-radvd-interface.h"
+#include "unicast-radvd.h"
 
 namespace ns3
 {
@@ -42,10 +42,10 @@ namespace ns3
 
 /**
  * \ingroup unicast-radvd
- * \class UnicastRadvd
+ * \class RegularUnicastRadvd
  * \brief Router advertisement daemon with MAC unicast.
  */
-class UnicastRadvd : public Application
+class RegularUnicastRadvd : public UnicastRadvd
 {
 public:
   /**
@@ -55,41 +55,20 @@ public:
   static TypeId GetTypeId (void);
 
   /**
-   * \brief Default value for maximum delay of RA (ms)
+   * \brief Constructor.
    */
-  static const uint32_t MAX_RA_DELAY_TIME = 500;
+  RegularUnicastRadvd ();
 
   /**
-   * \brief Add configuration for an interface;
-   * \param routerInterface configuration
+   * \brief Destructor.
    */
-  void AddConfiguration (Ptr<UnicastRadvdInterface> routerInterface);
-  
-  void RemoveConfiguration (Ptr<UnicastRadvdInterface> routerInterface);
-  void RemoveConfiguration (int32_t ifIndex);
+  virtual ~RegularUnicastRadvd ();
 
 protected:
-  typedef std::list<Ptr<UnicastRadvdInterface> > RadvdInterfaceList;
-  typedef std::list<Ptr<UnicastRadvdInterface> >::iterator RadvdInterfaceListI;
-  typedef std::list<Ptr<UnicastRadvdInterface> >::const_iterator RadvdInterfaceListCI;
-
-  typedef std::map<uint32_t, EventId> EventIdMap;
-  typedef std::map<uint32_t, EventId>::iterator EventIdMapI;
-  typedef std::map<uint32_t, EventId>::const_iterator EventIdMapCI;
   /**
    * \brief Dispose the instance.
    */
   virtual void DoDispose ();
-
-  /**
-   * \brief Schedule sending a packet.
-   * \param dt interval between packet
-   * \param config interface configuration
-   * \param eventId event ID associated
-   * \param dst IPv6 destination address
-   * \param reschedule if true another send will be reschedule (periodic)
-   */
-  void ScheduleTransmit (Time dt, Ptr<UnicastRadvdInterface> config, EventId& eventId, Ipv6Address dst = Ipv6Address::GetAllNodesMulticast (), bool reschedule = false);
 
   /**
    * \brief Send a packet.
@@ -97,21 +76,12 @@ protected:
    * \param dst destination address (default ff02::1)
    * \param reschedule if true another send will be reschedule (periodic)
    */
-  virtual void Send (Ptr<UnicastRadvdInterface> config, Ipv6Address dst = Ipv6Address::GetAllNodesMulticast (), bool reschedule = false) = 0;
+  virtual void Send (Ptr<UnicastRadvdInterface> config, Ipv6Address dst = Ipv6Address::GetAllNodesMulticast (), bool reschedule = false);
 
-  virtual bool IsAppStarted () = 0;
-
-  /**
-   * \brief List of configuration for interface.
-   */
-  RadvdInterfaceList m_configurations;
-
-  /**
-   * \brief Event ID map.
-   */
-  EventIdMap m_eventIds;
+  virtual bool IsAppStarted ();
 
 private:
+
   /**
    * \brief Start the application.
    */
@@ -122,9 +92,13 @@ private:
    */
   virtual void StopApplication ();
 
+  /**
+   * \brief Raw socket to send RA.
+   */
+  Ptr<Socket> m_socket;
 };
 
 } /* namespace ns3 */
 
-#endif /* UNICAST_RADVD_H */
+#endif /* REGULAR_UNICAST_RADVD_H */
 

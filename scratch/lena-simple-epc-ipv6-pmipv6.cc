@@ -26,8 +26,7 @@
 #include "ns3/applications-module.h"
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
-#include "ns3/test-pmipv6-module.h"
-//#include "ns3/flow-monitor-module.h"
+#include "ns3/pmipv6-module.h"
 
 using namespace ns3;
 
@@ -36,7 +35,7 @@ using namespace ns3;
  * attaches one UE per eNodeB starts a flow for each UE to  and from a remote host.
  * It also  starts yet another flow between each UE pair.
  */
-NS_LOG_COMPONENT_DEFINE ("EpcIpv6Example1");
+NS_LOG_COMPONENT_DEFINE ("LenaPmipv6");
 
 void PrintCompleteNodeInfo(Ptr<Node> node)
 {
@@ -48,15 +47,15 @@ void PrintCompleteNodeInfo(Ptr<Node> node)
   ipv6 = node->GetObject<Ipv6> ();
   ipv6l3 = node->GetObject<Ipv6L3Protocol> ();
   n_interfaces = ipv6->GetNInterfaces();
-  NS_LOG_INFO("No of interfaces: " << n_interfaces);
+  NS_LOG_UNCOND ("No of interfaces: " << n_interfaces);
   for (i = 0; i < n_interfaces; i++)
   {
     n_ipaddrs = ipv6->GetNAddresses(i);
-    NS_LOG_INFO ("Interface " << i << " Forwarding: " << ipv6l3->GetInterface (i)->IsForwarding ());
+    NS_LOG_UNCOND ("Interface " << i << " Forwarding: " << ipv6l3->GetInterface (i)->IsForwarding ());
     for (j = 0; j < n_ipaddrs; j++)
     {
       ipv6address = ipv6->GetAddress(i, j);
-      NS_LOG_INFO(ipv6address);
+      NS_LOG_UNCOND (ipv6address);
     }
   }
   OutputStreamWrapper osw = OutputStreamWrapper (&std::cout);
@@ -66,19 +65,19 @@ void PrintCompleteNodeInfo(Ptr<Node> node)
 
 void RxTrace (std::string context, Ptr<const Packet> packet, Ptr<Ipv6> ipv6, uint32_t interfaceId)
 {
-  NS_LOG_INFO (context << " " << interfaceId);
+  NS_LOG_DEBUG (context << " " << interfaceId);
 }
 
 void TxTrace (std::string context, Ptr<const Packet> packet, Ptr<Ipv6> ipv6, uint32_t interfaceId)
 {
   Ipv6Header ipv6Header;
   packet->PeekHeader (ipv6Header);
-  NS_LOG_UNCOND (context << " " << ipv6Header << " " << interfaceId);
+  NS_LOG_DEBUG (context << " " << ipv6Header << " " << interfaceId);
 }
 
 void DropTrace (std::string context, const Ipv6Header & ipv6Header, Ptr<const Packet> packet, Ipv6L3Protocol::DropReason dropReason, Ptr<Ipv6> ipv6, uint32_t interfaceId)
 {
-  NS_LOG_INFO (context << " " << ipv6Header.GetSourceAddress () << " " << ipv6Header.GetDestinationAddress () << " " << dropReason << " " << interfaceId);
+  NS_LOG_DEBUG (context << " " << ipv6Header.GetSourceAddress () << " " << ipv6Header.GetDestinationAddress () << " " << dropReason << " " << interfaceId);
 }
 
 void PacketSinkRxTrace (std::string context, Ptr<const Packet> packet, const Address &address)
@@ -87,59 +86,6 @@ void PacketSinkRxTrace (std::string context, Ptr<const Packet> packet, const Add
   packet->Copy ()->RemoveHeader (seqTs);
   NS_LOG_UNCOND (context << " " << seqTs.GetTs () << "->" << Simulator::Now() << ": " << seqTs.GetSeq());
 }
-
-//void SendOutgoing (std::string context, const Ipv6Header &ipHeader, Ptr<const Packet> ipPayload, uint32_t interface)
-//{
-////  NS_LOG_UNCOND (context << " " << ipHeader << " " << interface);
-////  std::cout << "Packet Tags: ";
-////  ipPayload->PrintPacketTags (std::cout);
-////  std::cout << std::endl;
-//
-//  Ipv6FlowProbeTag fTag;
-//  bool found = ipPayload->PeekPacketTag (fTag);
-//  if (found)
-//    NS_LOG_UNCOND (context << " Tag found : " << fTag.GetFlowId () << " " << fTag.GetPacketId () << " " << fTag.GetPacketSize ());
-//}
-//
-//void UnicastForward (std::string context, const Ipv6Header &ipHeader, Ptr<const Packet> ipPayload, uint32_t interface)
-//{
-//  NS_LOG_UNCOND (context << " " << ipHeader << " " << interface);
-//  Ipv6FlowProbeTag fTag;
-//  bool found = ipPayload->PeekPacketTag (fTag);
-//  if (found)
-//    NS_LOG_UNCOND (context << " Tag found : " << fTag.GetFlowId () << " " << fTag.GetPacketId () << " " << fTag.GetPacketSize ());
-//}
-//
-//void LocalDeliver (std::string context, const Ipv6Header &ipHeader, Ptr<const Packet> ipPayload, uint32_t interface)
-//{
-//  NS_LOG_UNCOND (context << " " << ipHeader << " " << interface);
-//  Ipv6FlowProbeTag fTag;
-//  bool found = ipPayload->PeekPacketTag (fTag);
-//  if (found)
-//    NS_LOG_UNCOND (context << " Tag found : " << fTag.GetFlowId () << " " << fTag.GetPacketId () << " " << fTag.GetPacketSize ());
-//}
-//
-//void Rx (std::string context, Ptr<const Packet> packet, Ptr<Ipv6> ipv6, uint32_t interface)
-//{
-////  NS_LOG_UNCOND ("Packet Tags");
-////  packet->PrintPacketTags (std::cout); std::cout << std::endl;
-//  Ipv6Header ipv6Header;
-//  packet->PeekHeader (ipv6Header);
-//  NS_LOG_UNCOND (context << " " << ipv6Header << " " << interface);
-//  Ipv6FlowProbeTag fTag;
-//  bool found = packet->PeekPacketTag (fTag);
-//  if (found)
-//    NS_LOG_UNCOND (context << " Tag found : " << fTag.GetFlowId () << " " << fTag.GetPacketId () << " " << fTag.GetPacketSize ());
-//}
-//
-//void Tx (std::string context, Ptr<const Packet> packet, Ptr<Ipv6> ipv6, uint32_t interface)
-//{
-////  NS_LOG_UNCOND ("Packet Tags");
-////  packet->PrintPacketTags (std::cout); std::cout << std::endl;
-//  Ipv6Header ipv6Header;
-//  NS_LOG_UNCOND (packet->PeekHeader (ipv6Header));
-//  NS_LOG_UNCOND (context << " " << ipv6Header << " " << interface);
-//}
 
 struct Args
 {
@@ -154,17 +100,7 @@ struct Args
 
 void InstallApplications (Args args)
 {
-  std::cout << "InstallApplications" << std::endl;
-//  Ipv6StaticRoutingHelper ipv6RoutingHelper;
-  // Assign IP address to UEs, and install applications
-//  for (uint32_t u = 0; u < args.ueNodes.GetN (); ++u)
-//    {
-//      Ptr<Node> ueNode = args.ueNodes.Get (u);
-//      // Set the default gateway for the UE
-//      Ptr<Ipv6StaticRouting> ueStaticRouting = ipv6RoutingHelper.GetStaticRouting (ueNode->GetObject<Ipv6> ());
-//      ueStaticRouting->SetDefaultRoute (args.epcHelper->GetUeDefaultGatewayAddress (), 1);
-//    }
-
+  NS_LOG_UNCOND ("Installing Applications");
   // Install and start applications on UEs and remote host
   uint16_t dlPort = 1234;
   uint16_t ulPort = 2000;
@@ -213,6 +149,31 @@ void InstallApplications (Args args)
   clientApps.Start (Seconds (1));
 }
 
+void PrintLteNodesInfo (Ptr<PointToPointEpc6Pmipv6Helper> epcHelper, NodeContainer enbNodes, NodeContainer ueNodes)
+{
+  // Print PGW info
+  NS_LOG_UNCOND ("PGW node");
+  PrintCompleteNodeInfo (epcHelper->GetPgwNode ());
+
+  // Print SGW info
+  NS_LOG_UNCOND ("SGW node");
+  PrintCompleteNodeInfo (epcHelper->GetSgwNode ());
+
+  // Print EnB Info
+  for (uint32_t i = 0; i < enbNodes.GetN (); i++)
+    {
+      NS_LOG_UNCOND ("EnB " << i);
+      PrintCompleteNodeInfo (enbNodes.Get (i));
+    }
+
+  // Print UE Info
+  for (uint32_t i = 0; i < ueNodes.GetN (); i++)
+    {
+      NS_LOG_UNCOND ("UE " << i);
+      PrintCompleteNodeInfo (ueNodes.Get (i));
+    }
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -231,17 +192,18 @@ main (int argc, char *argv[])
   cmd.AddValue ("maxPackets", "The maximum number of packets to be sent by the application", maxPackets);
   cmd.Parse(argc, argv);
 
+  Mac48Address magMacAddress ("00:00:aa:bb:cc:dd");
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
-  Ptr<PointToPointEpc6Pmipv6Helper> epcHelper = CreateObject<PointToPointEpc6Pmipv6Helper> ();
+  Ptr<PointToPointEpc6Pmipv6Helper> epcHelper = CreateObject<PointToPointEpc6Pmipv6Helper> (magMacAddress);
   lteHelper->SetEpcHelper (epcHelper);
+  epcHelper->SetupS5Interface ();
+  Ptr<Node> pgw = epcHelper->GetPgwNode ();
 
   ConfigStore inputConfig;
   inputConfig.ConfigureDefaults();
 
   // parse again so you can override default values from the command line
   cmd.Parse(argc, argv);
-
-  Ptr<Node> pgw = epcHelper->GetPgwNode ();
 
    // Create a single RemoteHost
   NodeContainer remoteHostContainer;
@@ -250,6 +212,7 @@ main (int argc, char *argv[])
   InternetStackHelper internet;
   internet.Install (remoteHostContainer);
 
+  // Stop DAD on remote host as DAD is disabled on PGW as well.
   Ptr<Icmpv6L4Protocol> remoteHostIcmpv6L4Protocol = remoteHost->GetObject<Icmpv6L4Protocol> ();
   remoteHostIcmpv6L4Protocol->SetAttribute ("DAD", BooleanValue (false));
 
@@ -257,10 +220,8 @@ main (int argc, char *argv[])
   PointToPointHelper p2ph;
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Gb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  p2ph.SetChannelAttribute ("Delay", TimeValue (Seconds (0.010)));
+  p2ph.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (300)));
   NetDeviceContainer internetDevices = p2ph.Install (pgw, remoteHost);
-  p2ph.EnablePcap ("internet-test", internetDevices, true);
-
   Ipv6AddressHelper ipv6h;
   ipv6h.SetBase ("c0::", "64");
   Ipv6InterfaceContainer internetIpIfaces = ipv6h.Assign (internetDevices);
@@ -268,14 +229,16 @@ main (int argc, char *argv[])
   Ipv6Address remoteHostAddr = internetIpIfaces.GetAddress (1, 1);
   Ipv6Address pgwInternetAddr = internetIpIfaces.GetAddress (0, 1);
 
+  // Create Static route for Remote Host to reach the UEs.
   Ipv6StaticRoutingHelper ipv6RoutingHelper;
   Ptr<Ipv6StaticRouting> remoteHostStaticRouting = ipv6RoutingHelper.GetStaticRouting (remoteHost->GetObject<Ipv6> ());
   remoteHostStaticRouting->AddNetworkRouteTo ("b0::", 32, pgwInternetAddr, 1);
 
+  // Create eNB and UE nodes.
   NodeContainer ueNodes;
   NodeContainer enbNodes;
-  enbNodes.Create(numberOfNodes);
-  ueNodes.Create(numberOfNodes);
+  enbNodes.Create (numberOfNodes);
+  ueNodes.Create (numberOfNodes);
 
   // Install Mobility Model
   Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator> ();
@@ -295,86 +258,50 @@ main (int argc, char *argv[])
   mobility.SetPositionAllocator(uePositionAlloc);
   mobility.Install(ueNodes);
 
-  // Install LTE Devices to the nodes
+  // Install LTE Devices to the UE and eNB nodes
   NetDeviceContainer enbLteDevs = lteHelper->InstallEnbDevice (enbNodes);
   NetDeviceContainer ueLteDevs = lteHelper->InstallUeDevice (ueNodes);
 
-  // Install the IP stack on the UEs
+  // Install the IP stack on the UEs and enable the interfaces to have link-local Ipv6 addresses.
   internet.Install (ueNodes);
   for (uint32_t i = 0; i < ueLteDevs.GetN (); i++)
     ueLteDevs.Get (i)->SetAddress (Mac48Address::Allocate ());
-
   Ipv6InterfaceContainer ueIpIface;
-//  ueIpIface = epcHelper->AssignUeIpv6Address (NetDeviceContainer (ueLteDevs));
   ueIpIface = epcHelper->AssignWithoutAddress (ueLteDevs);
 
-  epcHelper->EnablePcap ("lte-ue", ueLteDevs);
-  epcHelper->EnablePcap ("lte-enb", enbLteDevs);
-  // Print PGW/SGW info
-  NS_LOG_INFO ("PGW/SGW node");
-  PrintCompleteNodeInfo (epcHelper->GetPgwNode ());
-
-  // Print EnB Info
-  for (uint32_t i = 0; i < enbNodes.GetN (); i++)
-    {
-      NS_LOG_INFO ("EnB " << i);
-      PrintCompleteNodeInfo (enbNodes.Get (i));
-    }
-
-  // Print UE Info
-  for (uint32_t i = 0; i < ueNodes.GetN (); i++)
-    {
-      NS_LOG_INFO ("UE " << i);
-      Simulator::Schedule (Seconds (6), &PrintCompleteNodeInfo, ueNodes.Get (i));
-      PrintCompleteNodeInfo (ueNodes.Get (i));
-    }
-
-  // Print remote host info
-  NS_LOG_INFO ("Remote host");
-  PrintCompleteNodeInfo (remoteHostContainer.Get (0));
-
-
-  // Attach one UE per eNodeB
+  // Attach one UE per eNB
   for (uint16_t i = 0; i < numberOfNodes; i++)
-      {
-        lteHelper->Attach (ueLteDevs.Get(i), enbLteDevs.Get(i), false);
-        // side effect: the default EPS bearer will be activated
-      }
+    {
+      lteHelper->Attach (ueLteDevs.Get(i), enbLteDevs.Get(i), false);
+      // side effect: the default EPS bearer will be activated
+    }
 
-  // Add traces to sgw/pgw node.
-//  Config::Connect ("/NodeList/4/$ns3::Ipv6L3Protocol/Rx", MakeCallback (&RxTrace));
+  // Add PMIPv6 profiles.
+  Ptr<Pmipv6ProfileHelper> profile = epcHelper->GetPmipv6ProfileHelper ();
+
+  // Add profile for each UE
+  std::ostringstream oss;
+  for (uint32_t i = 0; i < ueLteDevs.GetN (); i++)
+    {
+      oss.str ("");
+      oss.clear ();
+      oss << "node" << i << "@iith.ac.in";
+      Ptr<NetDevice> netDev = ueLteDevs.Get (i);
+      Ptr<LteUeNetDevice> ueLteNetDev = DynamicCast<LteUeNetDevice> (netDev);
+      profile->AddProfile (Identifier (oss.str ().c_str ()), Identifier (), Ipv6Address ("a1::200:ff:fe00:2"), std::list<Ipv6Address> (), ueLteNetDev->GetImsi ());
+    }
+
+  // Enable PCAP traces
+  p2ph.EnablePcapAll ("lte-pmipv6");
+  epcHelper->EnablePcap ("lte-pmipv6", ueLteDevs);
+  epcHelper->EnablePcap ("lte-pmipv6", enbLteDevs);
+
+  // Add IP traces to all nodes.
+  Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Rx", MakeCallback (&RxTrace));
   Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Tx", MakeCallback (&TxTrace));
   Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Drop", MakeCallback (&DropTrace));
-  Ptr<Node> sgw = epcHelper->GetPgwNode ();
-  Ptr<TestPmipv6> testPmipv6 = CreateObject<TestPmipv6> ();
-  sgw->AggregateObject (testPmipv6);
 
-  // Uncomment to enable PCAP tracing
-  //p2ph.EnablePcapAll("lena-epc-first");
-//  NodeContainer flowMonitorNodes;
-//  flowMonitorNodes.Add (ueNodes);
-//  flowMonitorNodes.Add (enbNodes);
-//  flowMonitorNodes.Add (pgw);
-//  flowMonitorNodes.Add (remoteHostContainer);
-//  FlowMonitorHelper flowmon;
-//  Ptr<FlowMonitor> monitor = flowmon.Install (flowMonitorNodes);
-//  Ptr<FlowMonitor> monitor = flowmon.InstallAll ();
-
-//  NodeContainer attachL3Traces;
-//  attachL3Traces.Add (enbNodes);
-//  attachL3Traces.Add (pgw);
-//  attachL3Traces.Add (ueNodes);
-//  for (NodeContainer::Iterator it = attachL3Traces.Begin (); it != attachL3Traces.End (); it++)
-//    {
-//      Ptr<Node> n = *it;
-//      std::ostringstream oss;
-//      oss << "/NodeList/"  << n->GetId () << "/$ns3::Ipv6L3Protocol/";
-//      Config::Connect (oss.str () + "SendOutgoing", MakeCallback (&SendOutgoing));
-//      Config::Connect (oss.str () + "/LocalDeliver", MakeCallback (&LocalDeliver));
-//      Config::Connect (oss.str () + "UnicastForward", MakeCallback (&UnicastForward));
-//      Config::Connect (oss.str () + "Rx", MakeCallback (&Rx));
-//      Config::Connect (oss.str () + "Tx", MakeCallback (&Tx));
-//    }
+  // Schedule Applications.
   Args args;
   args.ueNodes = ueNodes;
   args.epcHelper = epcHelper;
@@ -385,13 +312,17 @@ main (int argc, char *argv[])
   args.remoteHostAddr = remoteHostAddr;
   Simulator::Schedule (Seconds (10), &InstallApplications, args);
 
+  // Print Information
+  PrintLteNodesInfo (epcHelper, enbNodes, ueNodes);
+  // Print remote host info
+  NS_LOG_UNCOND ("Remote host");
+  PrintCompleteNodeInfo (remoteHostContainer.Get (0));
+  // Schedule print information
+  Simulator::Schedule (Seconds (6), &PrintLteNodesInfo, epcHelper, enbNodes, ueNodes);
+
+  // Run simulation
   Simulator::Stop(Seconds(simTime));
   Simulator::Run();
-
-//  monitor->SerializeToXmlStream (std::cout, 2, false, false);
-  /*GtkConfigStore config;
-  config.ConfigureAttributes();*/
-
   Simulator::Destroy();
   return 0;
 

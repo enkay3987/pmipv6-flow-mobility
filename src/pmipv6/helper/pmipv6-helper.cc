@@ -128,7 +128,7 @@ Pmipv6MagHelper::~Pmipv6MagHelper()
 }
 
 void
-Pmipv6MagHelper::Install (Ptr<Node> node) const
+Pmipv6MagHelper::Install (Ptr<Node> node, bool isLteMag) const
 {
   Ptr<Ipv6MobilityL4Protocol> mipv6 = node->GetObject<Ipv6MobilityL4Protocol>();
   if(mipv6 == 0)
@@ -149,6 +149,7 @@ Pmipv6MagHelper::Install (Ptr<Node> node) const
 
   Ptr<Pmipv6Mag> mag = CreateObject<Pmipv6Mag>();
   mag->UseRemoteAP (false);
+  mag->SetLteMag (isLteMag);
   if(m_profile != 0)
     {
       mag->SetProfile (m_profile->GetProfile ());
@@ -243,23 +244,22 @@ Ptr<Pmipv6Profile> Pmipv6ProfileHelper::GetProfile()
   return m_profile;
 }
 
-void Pmipv6ProfileHelper::AddProfile(Identifier mnId, Identifier mnLinkId, Ipv6Address lmaa, std::list<Ipv6Address> hnps)
+void Pmipv6ProfileHelper::AddProfile(Identifier mnId, Identifier mnLinkId, Ipv6Address lmaa, std::list<Ipv6Address> hnps, uint64_t imsi)
 {
   Pmipv6Profile::Entry *entry;
   
-  entry = m_profile->Add(mnId);
+  entry = m_profile->AddMnId (mnId);
   
   entry->SetMnIdentifier(mnId);
   entry->SetMnLinkIdentifier(mnLinkId);
   entry->SetLmaAddress(lmaa);
   entry->SetHomeNetworkPrefixes(hnps);
+  entry->SetImsi (imsi);
   
-  entry = m_profile->Add(mnLinkId);
-  
-  entry->SetMnIdentifier(mnId);
-  entry->SetMnLinkIdentifier(mnLinkId);
-  entry->SetLmaAddress(lmaa);
-  entry->SetHomeNetworkPrefixes(hnps);
+  if (!mnLinkId.IsEmpty ())
+    m_profile->AddMnLinkId (mnLinkId, entry);
+  if (imsi != 0)
+    m_profile->AddImsi (imsi, entry);
 }
 
 } // namespace ns3

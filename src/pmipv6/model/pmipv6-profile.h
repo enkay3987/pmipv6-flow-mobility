@@ -55,10 +55,13 @@ public:
   Pmipv6Profile();
   ~Pmipv6Profile();
   
-  Entry *Lookup(Identifier id);
-  Entry *Add(Identifier id);
-  void Remove(Entry *entry);
-  
+  Entry *LookupMnId (Identifier id);
+  Entry *LookupMnLinkId (Identifier id);
+  Entry *LookupImsi (uint64_t imsi);
+  Entry *AddMnId (Identifier id, Entry *entry = NULL);
+  Entry *AddMnLinkId (Identifier id, Entry *entry = NULL);
+  Entry *AddImsi (uint64_t imsi, Entry *entry = NULL);
+  void Remove (Entry *entry);
   void Flush();
   
   class Entry
@@ -71,6 +74,9 @@ public:
 
     Identifier GetMnLinkIdentifier() const;
     void SetMnLinkIdentifier(Identifier mnLinkId);
+
+    uint64_t GetImsi () const;
+    void SetImsi (uint64_t imsi);
 
     Ipv6Address GetLmaAddress() const;
     void SetLmaAddress(Ipv6Address lmaa);
@@ -86,6 +92,7 @@ public:
 	
     Identifier m_mnIdentifier;
     Identifier m_mnLinkIdentifier;
+    uint64_t m_imsi;
     Ipv6Address m_lmaAddress;
     std::list<Ipv6Address> m_homeNetworkPrefixes;
   };
@@ -93,11 +100,16 @@ protected:
   void DoDispose();
 
 private:
-  typedef sgi::hash_map<Identifier, Pmipv6Profile::Entry *, IdentifierHash> ProfileList;
-  typedef sgi::hash_map<Identifier, Pmipv6Profile::Entry *, IdentifierHash>::iterator ProfileListI;
+  typedef sgi::hash_map<Identifier, Pmipv6Profile::Entry *, IdentifierHash> MnIdProfileList;
+  typedef sgi::hash_map<Identifier, Pmipv6Profile::Entry *, IdentifierHash>::iterator MnIdProfileListI;
+  typedef sgi::hash_map<Identifier, Pmipv6Profile::Entry *, IdentifierHash> MnLinkIdProfileList;
+  typedef sgi::hash_map<Identifier, Pmipv6Profile::Entry *, IdentifierHash>::iterator MnLinkIdProfileListI;
+  typedef std::map<uint64_t, Pmipv6Profile::Entry *> ImsiProfileList;
+  typedef std::map<uint64_t, Pmipv6Profile::Entry *>::iterator ImsiProfileListI;
   
-  ProfileList m_profileList;
-
+  MnIdProfileList m_mnIdProfileList;
+  MnLinkIdProfileList m_mnLinkIdProfileList;
+  ImsiProfileList m_imsiProfileList;
 };
 
 } /* namespace ns3 */

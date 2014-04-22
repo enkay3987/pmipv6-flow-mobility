@@ -42,12 +42,16 @@ public:
   bool IsUseRemoteAP() const;
   void UseRemoteAP(bool remoteAp);
   
+  bool IsLteMag () const;
+  void SetLteMag (bool isLteMag);
+
   uint16_t GetSequence();
   
   bool SetupTunnelAndRouting(BindingUpdateList::Entry *bule);
   void ClearTunnelAndRouting(BindingUpdateList::Entry *bule); 
 
-  bool SetupRadvdInterface(BindingUpdateList::Entry *bule);
+  void SetupRegularRadvdInterface(BindingUpdateList::Entry *bule);
+  void SetupLteRadvdInterface(BindingUpdateList::Entry *bule);
   void ClearRadvdInterface(BindingUpdateList::Entry *bule);
   
   Ptr<Packet> BuildPbu(BindingUpdateList::Entry *bule);
@@ -64,18 +68,25 @@ protected:
   
   Ptr<UnicastRadvd> GetRadvd() const;
   
-  virtual void HandleNewNode(Mac48Address from, Mac48Address to, uint8_t att);
+  virtual void HandleRegularNewNode (Mac48Address from, Mac48Address to, uint8_t att);
+  virtual void HandleLteNewNode (uint32_t teid, uint64_t imsi, uint8_t att);
   virtual uint8_t HandlePba(Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface);
   
 private:
   
   bool m_useRemoteAp;
+  bool m_isLteMag;
   
+  Callback<void, uint64_t, Ipv6Address> m_setIp;
+
   uint16_t m_sequence;
   
   Ptr<BindingUpdateList> m_buList;
   
   Ptr<UnicastRadvd> m_radvd;
+
+  // Interface index where MAG is on LTE.
+  int16_t m_ifIndex;
 };
 
 } /* namespace ns3 */

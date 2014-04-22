@@ -33,17 +33,14 @@
 #include "ns3/ipv6-route.h"
 #include "ns3/ipv6-l3-protocol.h"
 #include "ns3/ipv6-interface.h"
-
 #include "ns3/wifi-net-device.h"
 #include "ns3/wifi-mac.h"
 #include "ns3/regular-wifi-mac.h"
 //#include "ns3/wimax-net-device.h"
-
+#include "ns3/epc6-sgw-application.h"
 #include "ns3/point-to-point-net-device.h"
-
 #include "ns3/ipv6-static-routing-helper.h"
 #include "ns3/ipv6-static-routing.h"
-
 #include "ns3/ipv6-static-source-routing-helper.h"
 
 #include "ipv6-static-source-routing.h"
@@ -55,6 +52,8 @@
 #include "ipv6-mobility-l4-protocol.h"
 #include "ipv6-tunnel-l4-protocol.h"
 #include "unicast-radvd.h"
+#include "lte-unicast-radvd.h"
+#include "regular-unicast-radvd.h"
 #include "pmipv6-profile.h"
 #include "pmipv6-mag-notifier.h"
 #include "pmipv6-mag.h"
@@ -70,9 +69,11 @@ NS_OBJECT_ENSURE_REGISTERED (Pmipv6Mag);
 
 Pmipv6Mag::Pmipv6Mag ()
 : m_useRemoteAp (false),
+  m_isLteMag (false),
   m_sequence (0),
   m_buList (0),
-  m_radvd (0)
+  m_radvd (0),
+  m_ifIndex (-1)
 {
 }
 
@@ -102,43 +103,68 @@ void Pmipv6Mag::NotifyNewAggregate ()
       m_buList = CreateObject<BindingUpdateList> ();
       m_buList->SetNode (node);
 
-      if (!m_useRemoteAp)
+      if (m_isLteMag)
         {
-          // register linkup callback.
-          uint32_t nDev = node->GetNDevices ();
-          for (uint32_t i = 0; i < nDev; ++i)
+          Ptr<Epc6SgwApplication> epc6SgwApp;
+          for (uint32_t i = 0; i < node->GetNApplications (); i++)
             {
-              Ptr<NetDevice> dev = node->GetDevice (i);
-              Ptr<WifiNetDevice> wDev = dev->GetObject<WifiNetDevice> ();
-              if (wDev)
+              Ptr<Application> app = node->GetApplication (i);
+              epc6SgwApp = DynamicCast<Epc6SgwApplication> (app);
+              if (epc6SgwApp)
                 {
-                  Ptr<WifiMac> mac = wDev->GetMac ();
-                  Ptr<RegularWifiMac> rmac = mac->GetObject<RegularWifiMac> ();
-                  if (!mac || !rmac)
-                    {
-                      continue;
-                    }
-                  rmac->SetNewHostCallback (MakeCallback (&Pmipv6Mag::HandleNewNode, this));
+                  NS_LOG_INFO ("Installed callback " << i);
+                  epc6SgwApp->SetUePrefixCallback (m_setIp);
+                  epc6SgwApp->SetNewHostCallback (MakeCallback (&Pmipv6Mag::HandleLteNewNode, this));
+                  m_ifIndex = (int16_t) epc6SgwApp->GetTunnelInterfaceId ();
+                  break;
                 }
-//              Ptr<WimaxNetDevice> wDev2 = dev->GetObject<WimaxNetDevice> ();
-//              if (wDev2)
-//                {
-//                  wDev2->SetNewHostCallback (MakeCallback (&Pmipv6Mag::HandleNewNode, this));
-//                  continue;
-//                }
             }
+          Ptr<LteUnicastRadvd> unicastRadvd = CreateObject<LteUnicastRadvd> ();
+          unicastRadvd->SetStartTime (Seconds (1));
+          node->AddApplication (unicastRadvd);
+          unicastRadvd->SetSendCallback ();
+          m_radvd = DynamicCast<UnicastRadvd> (unicastRadvd);
         }
-        else
-          {
-            Ptr<Pmipv6MagNotifier> noti = GetNode ()->GetObject<Pmipv6MagNotifier> ();
-            NS_ASSERT (noti != 0);
-            noti->SetNewNodeCallback (MakeCallback (&Pmipv6Mag::HandleNewNode, this));
-          }
-
-      //RADVD Setting
-      m_radvd = CreateObject<UnicastRadvd> ();
-      node->AddApplication (m_radvd);
-      m_radvd->SetStartTime (Seconds (1.));
+      else
+        {
+          if (!m_useRemoteAp)
+            {
+              // register linkup callback.
+              uint32_t nDev = node->GetNDevices ();
+              for (uint32_t i = 0; i < nDev; ++i)
+                {
+                  Ptr<NetDevice> dev = node->GetDevice (i);
+                  Ptr<WifiNetDevice> wDev = dev->GetObject<WifiNetDevice> ();
+                  if (wDev)
+                    {
+                      Ptr<WifiMac> mac = wDev->GetMac ();
+                      Ptr<RegularWifiMac> rmac = mac->GetObject<RegularWifiMac> ();
+                      if (!mac || !rmac)
+                        {
+                          continue;
+                        }
+                      rmac->SetNewHostCallback (MakeCallback (&Pmipv6Mag::HandleRegularNewNode, this));
+                    }
+    //              Ptr<WimaxNetDevice> wDev2 = dev->GetObject<WimaxNetDevice> ();
+    //              if (wDev2)
+    //                {
+    //                  wDev2->SetNewHostCallback (MakeCallback (&Pmipv6Mag::HandleNewNode, this));
+    //                  continue;
+    //                }
+                }
+            }
+          else
+            {
+              Ptr<Pmipv6MagNotifier> noti = GetNode ()->GetObject<Pmipv6MagNotifier> ();
+              NS_ASSERT (noti != 0);
+              noti->SetNewNodeCallback (MakeCallback (&Pmipv6Mag::HandleRegularNewNode, this));
+            }
+          // RADVD Setting
+          Ptr<RegularUnicastRadvd> unicastRadvd = CreateObject<RegularUnicastRadvd> ();
+          unicastRadvd->SetStartTime (Seconds (1.));
+          node->AddApplication (unicastRadvd);
+          m_radvd = DynamicCast<UnicastRadvd> (unicastRadvd);
+        }
     }
   Pmipv6Agent::NotifyNewAggregate ();
 }
@@ -151,6 +177,16 @@ bool Pmipv6Mag::IsUseRemoteAP () const
 void Pmipv6Mag::UseRemoteAP (bool remoteAp)
 {
   m_useRemoteAp = remoteAp;
+}
+
+bool Pmipv6Mag::IsLteMag () const
+{
+  return m_isLteMag;
+}
+
+void Pmipv6Mag::SetLteMag (bool isLteMag)
+{
+  m_isLteMag = isLteMag;
 }
 
 Ipv6Address Pmipv6Mag::GetLinkLocalAddress (Ipv6Address addr)
@@ -250,8 +286,11 @@ Ptr<Packet> Pmipv6Mag::BuildPbu (BindingUpdateList::Entry *bule)
   pbu.AddOption (atth);
 
   // Add MobileNode Link Identifier Option
-  mnllidh.SetLinkLayerIdentifier (bule->GetMnLinkIdentifier ());
-  pbu.AddOption (mnllidh);
+  if (!bule->GetMnLinkIdentifier ().IsEmpty ())
+    {
+      mnllidh.SetLinkLayerIdentifier (bule->GetMnLinkIdentifier ());
+      pbu.AddOption (mnllidh);
+    }
 
   // Add Link Local Address Option (if available).
   if (!bule->GetMagLinkAddress ().IsAny ())
@@ -270,13 +309,13 @@ Ptr<Packet> Pmipv6Mag::BuildPbu (BindingUpdateList::Entry *bule)
   return p;
 }
 
-void Pmipv6Mag::HandleNewNode (Mac48Address from, Mac48Address to, uint8_t att)
+void Pmipv6Mag::HandleRegularNewNode (Mac48Address from, Mac48Address to, uint8_t att)
 {
   NS_LOG_FUNCTION (this << from << to <<(uint32_t)att);
   NS_ASSERT ( GetProfile() != 0 );
 
   // Get Profile
-  Pmipv6Profile::Entry *pf = GetProfile ()->Lookup (Identifier (from));
+  Pmipv6Profile::Entry *pf = GetProfile ()->LookupMnLinkId (Identifier (from));
   if (pf == 0)
     {
       NS_LOG_LOGIC ("No profile exists for MAC(" << from << ") ATT(" << (uint32_t) att << ")");
@@ -339,6 +378,75 @@ void Pmipv6Mag::HandleNewNode (Mac48Address from, Mac48Address to, uint8_t att)
     }
 
   bule->SetIfIndex (ifIndex);
+
+  // Preset header information
+  bule->SetLastBindingUpdateSequence (GetSequence ());
+  // Cut to micro-seconds
+  bule->SetLastBindingUpdateTime (MicroSeconds (Simulator::Now ().GetMicroSeconds ()));
+
+  Ptr<Packet> p = BuildPbu (bule);
+  //save packet
+  bule->SetPbuPacket (p);
+  // Reset (for the first registration)
+  bule->ResetRetryCount ();
+
+  // send PBU
+  SendMessage (p->Copy (), bule->GetLmaAddress (), 64);
+
+  bule->StartRetransTimer ();
+  if (bule->IsReachable ())
+    {
+      bule->MarkRefreshing ();
+    }
+  else
+    {
+      bule->MarkUpdating ();
+    }
+}
+
+void
+Pmipv6Mag::HandleLteNewNode (uint32_t teid, uint64_t imsi, uint8_t att)
+{
+  NS_LOG_FUNCTION (this << teid << imsi << (uint32_t) att);
+  NS_ASSERT ( GetProfile() != 0 );
+
+  // Get Profile
+  Pmipv6Profile::Entry *pf = GetProfile ()->LookupImsi (imsi);
+  if (pf == 0)
+    {
+      NS_LOG_LOGIC ("No profile exists for Imsi(" << imsi << ") Att(" << (uint32_t) att << ")");
+      return;
+    }
+
+  // Check BUL
+  BindingUpdateList::Entry *bule = m_buList->Lookup (pf->GetMnIdentifier ());
+  if (bule == 0)
+    {
+      bule = m_buList->Add (pf->GetMnIdentifier ());
+    }
+
+  bule->SetAccessTechnologyType (att);
+  bule->SetMnLinkIdentifier (Identifier ());
+  bule->SetLmaAddress (pf->GetLmaAddress ());
+  if (pf->GetHomeNetworkPrefixes ().size () > 0)
+    {
+      bule->SetHomeNetworkPrefixes (pf->GetHomeNetworkPrefixes ());
+    }
+
+  //XXX: how to determine proper HI(Handoff Indicator) value??
+  bule->SetHandoffIndicator (Ipv6MobilityHeader::OPT_HI_HANDOFF_STATE_UNKNOWN);
+
+  Ipv6Address lla = GetLinkLocalAddress (bule->GetLmaAddress ());
+  if (!lla.IsAny ())
+    {
+      bule->SetMagLinkAddress (lla);
+    }
+
+  bule->SetIfIndex (m_ifIndex);
+
+  // Set LTE parameters
+  bule->SetImsi (imsi);
+  bule->SetTunnelId (teid);
 
   // Preset header information
   bule->SetLastBindingUpdateSequence (GetSequence ());
@@ -435,8 +543,16 @@ uint8_t Pmipv6Mag::HandlePba (Ptr<Packet> packet, const Ipv6Address &src, const 
         {
           if (bule->IsUpdating ())
             {
-              // Register radvd interface
-              SetupRadvdInterface (bule);
+              if (IsLteMag ())
+                {
+                  m_setIp (bule->GetImsi (), bule->GetHomeNetworkPrefixes().front ());
+                  SetupLteRadvdInterface (bule);
+                }
+              else
+                {
+                  // Register radvd interface
+                  SetupRegularRadvdInterface (bule);
+                }
               // Create tunnel & setup routing
               SetupTunnelAndRouting (bule);
             }
@@ -533,21 +649,18 @@ void Pmipv6Mag::ClearTunnelAndRouting (BindingUpdateList::Entry *bule)
   bule->SetTunnelIfIndex (-1);
 }
 
-bool Pmipv6Mag::SetupRadvdInterface (BindingUpdateList::Entry *bule)
+void Pmipv6Mag::SetupRegularRadvdInterface (BindingUpdateList::Entry *bule)
 {
   NS_LOG_FUNCTION (this << bule);
 
   uint32_t ifIndex = bule->GetIfIndex ();
-
   Ptr<UnicastRadvdInterface> uri = Create<UnicastRadvdInterface> (ifIndex, 5000, 1000);
   Identifier linkId = bule->GetMnLinkIdentifier ();
 
   Mac48Address phyId;
   uint8_t buf[Identifier::MAX_SIZE];
-
   linkId.CopyTo (buf, Identifier::MAX_SIZE);
   phyId.CopyFrom (buf);
-
   uri->SetPhysicalAddress (phyId);
 
   std::list<Ipv6Address> hnpList = bule->GetHomeNetworkPrefixes ();
@@ -559,7 +672,23 @@ bool Pmipv6Mag::SetupRadvdInterface (BindingUpdateList::Entry *bule)
 
   GetRadvd ()->AddConfiguration (uri);
   bule->SetRadvdIfIndex (uri->GetInterface ());
-  return true;
+}
+
+void Pmipv6Mag::SetupLteRadvdInterface (BindingUpdateList::Entry *bule)
+{
+  NS_LOG_FUNCTION (this << bule);
+
+  Ptr<UnicastRadvdInterface> uri = Create<UnicastRadvdInterface> (bule->GetIfIndex (), 5000, 1000, UnicastRadvdInterface::LTE);
+  uri->SetImsi (bule->GetImsi ());
+  uri->SetTunnelId (bule->GetTunnelId ());
+  std::list<Ipv6Address> hnpList = bule->GetHomeNetworkPrefixes ();
+  for (std::list<Ipv6Address>::iterator i = hnpList.begin (); i != hnpList.end (); i++)
+    {
+      Ptr<RadvdPrefix> prefix = Create<RadvdPrefix> ((*i), 64, 3, 5);
+      uri->AddPrefix (prefix);
+    }
+  GetRadvd ()->AddConfiguration (uri);
+  bule->SetRadvdIfIndex (uri->GetInterface ());
 }
 
 void Pmipv6Mag::ClearRadvdInterface (BindingUpdateList::Entry *bule)

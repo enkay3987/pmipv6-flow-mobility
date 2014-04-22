@@ -600,4 +600,28 @@ void BindingUpdateList::Entry::SetRadvdIfIndex(int32_t ifIndex)
   m_radvdIfIndex = ifIndex;
 }
 
+int64_t BindingUpdateList::Entry::GetImsi () const
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  return m_imsi;
+}
+
+void BindingUpdateList::Entry::SetImsi (int64_t imsi)
+{
+  NS_LOG_FUNCTION (this << imsi);
+  m_imsi = imsi;
+}
+
+int32_t BindingUpdateList::Entry::GetTunnelId () const
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  return m_teid;
+}
+
+void BindingUpdateList::Entry::SetTunnelId (int32_t teid)
+{
+  NS_LOG_FUNCTION (this << teid);
+  m_teid = teid;
+}
+
 } /* namespace ns3 */

@@ -30,6 +30,8 @@ def build(bld):
         'model/tunnel-net-device.cc',
         'model/unicast-radvd.cc',
         'model/unicast-radvd-interface.cc',
+        'model/regular-unicast-radvd.cc',
+        'model/lte-unicast-radvd.cc',
         'helper/ipv6-static-source-routing-helper.cc',
         'helper/pmipv6-helper.cc',
         ]
@@ -63,6 +65,8 @@ def build(bld):
         'model/tunnel-net-device.h',
         'model/unicast-radvd.h',
         'model/unicast-radvd-interface.h',
+        'model/regular-unicast-radvd.h',
+        'model/lte-unicast-radvd.h',
         'helper/ipv6-static-source-routing-helper.h',
         'helper/pmipv6-helper.h',
         ]

@@ -52,6 +52,7 @@ public:
   void Install (Ptr<Node> node) const;
   
   void SetProfileHelper(Ptr<Pmipv6ProfileHelper> pf);
+  Ptr<Pmipv6ProfileHelper> GetProfileHelper ();
   
   void SetPrefixPoolBase(Ipv6Address prefixBegin, uint8_t prefixLen);
 
@@ -72,10 +73,11 @@ public:
   /**
    * \param node The node on which to install the stack.
    */
-  void Install (Ptr<Node> node) const;
+  void Install (Ptr<Node> node, bool isLteMag = false) const;
   void Install (Ptr<Node> node, Ipv6Address target, NodeContainer aps) const;
   
-  void SetProfileHelper(Ptr<Pmipv6ProfileHelper> pf);
+  void SetProfileHelper (Ptr<Pmipv6ProfileHelper> pf);
+  Ptr<Pmipv6ProfileHelper> GetProfileHelper ();
   
 protected:
 
@@ -91,7 +93,7 @@ public:
   
   Ptr<Pmipv6Profile> GetProfile();
   
-  void AddProfile(Identifier mnId, Identifier mnLinkId, Ipv6Address lmaa, std::list<Ipv6Address> hnps);
+  void AddProfile (Identifier mnId, Identifier mnLinkId, Ipv6Address lmaa, std::list<Ipv6Address> hnps, uint64_t imsi = 0);
 protected:
 
 private:

@@ -69,83 +69,89 @@ public:
   public:
     Entry(Ptr<BindingUpdateList> bul);
 	
-	bool IsUnreachable() const;
-	bool IsUpdating() const;
-	bool IsRefreshing() const;
-	bool IsReachable() const;
+    bool IsUnreachable() const;
+    bool IsUpdating() const;
+    bool IsRefreshing() const;
+    bool IsReachable() const;
+
+    void MarkUnreachable();
+    void MarkUpdating();
+    void MarkRefreshing();
+    void MarkReachable();
+
+    //timer processing
+    void StartRetransTimer();
+    void StopRetransTimer();
+
+    void StartReachableTimer();
+    void StopReachableTimer();
+
+    void StartRefreshTimer();
+    void StopRefreshTimer();
+
+    void FunctionRetransTimeout();
+    void FunctionReachableTimeout();
+    void FunctionRefreshTimeout();
+
+    bool Match(Identifier mnId) const;
+
+    Identifier GetMnIdentifier() const;
+    void SetMnIdentifier(Identifier mnId);
+
+    Identifier GetMnLinkIdentifier() const;
+    void SetMnLinkIdentifier(Identifier mnLinkId);
+
+    std::list<Ipv6Address> GetHomeNetworkPrefixes() const;
+    void SetHomeNetworkPrefixes(std::list<Ipv6Address> hnpList);
+
+    Ipv6Address GetMagLinkAddress() const;
+    void SetMagLinkAddress(Ipv6Address lla);
+
+    Ipv6Address GetLmaAddress() const;
+    void SetLmaAddress(Ipv6Address lmaa);
+
+    int16_t GetIfIndex() const;
+    void SetIfIndex(int16_t ifi);
+
+    int16_t GetTunnelIfIndex() const;
+    void SetTunnelIfIndex(int16_t tunnelif);
+
+    uint8_t GetAccessTechnologyType() const;
+    void SetAccessTechnologyType(uint8_t att);
+
+    uint8_t GetHandoffIndicator() const;
+    void SetHandoffIndicator(uint8_t hi);
+
+    Time GetLastBindingUpdateTime() const;
+    void SetLastBindingUpdateTime(Time tm);
+
+    Time GetReachableTime() const;
+    void SetReachableTime(Time tm);
+
+    uint16_t GetLastBindingUpdateSequence() const;
+    void SetLastBindingUpdateSequence(uint16_t seq);
+
+    Ptr<Packet> GetPbuPacket() const;
+    void SetPbuPacket(Ptr<Packet> pkt);
+
+    uint8_t GetRetryCount() const;
+    void IncreaseRetryCount();
+    void ResetRetryCount();
+
+    Entry *GetNext() const;
+    void SetNext(Entry *entry);
+
+    int32_t GetRadvdIfIndex() const;
+    void SetRadvdIfIndex(int32_t ifIndex);
+
+    int64_t GetImsi () const;
+    void SetImsi (int64_t imsi);
 	
-	void MarkUnreachable();
-	void MarkUpdating();
-	void MarkRefreshing();
-	void MarkReachable();
-	
-	//timer processing
-	void StartRetransTimer();
-	void StopRetransTimer();
-	
-	void StartReachableTimer();
-	void StopReachableTimer();
-	
-	void StartRefreshTimer();
-	void StopRefreshTimer();
-	
-	void FunctionRetransTimeout();
-	void FunctionReachableTimeout();
-	void FunctionRefreshTimeout();
-	
-	bool Match(Identifier mnId) const;
-	
-	Identifier GetMnIdentifier() const;
-	void SetMnIdentifier(Identifier mnId);
-	
-	Identifier GetMnLinkIdentifier() const;
-	void SetMnLinkIdentifier(Identifier mnLinkId);
-	
-	std::list<Ipv6Address> GetHomeNetworkPrefixes() const;
-	void SetHomeNetworkPrefixes(std::list<Ipv6Address> hnpList);
-	
-	Ipv6Address GetMagLinkAddress() const;
-	void SetMagLinkAddress(Ipv6Address lla);
-	
-	Ipv6Address GetLmaAddress() const;
-	void SetLmaAddress(Ipv6Address lmaa);
-	
-	int16_t GetIfIndex() const;
-	void SetIfIndex(int16_t ifi);
-	
-	int16_t GetTunnelIfIndex() const;
-	void SetTunnelIfIndex(int16_t tunnelif);
-	
-	uint8_t GetAccessTechnologyType() const;
-	void SetAccessTechnologyType(uint8_t att);
-	
-	uint8_t GetHandoffIndicator() const;
-	void SetHandoffIndicator(uint8_t hi);
-	
-	Time GetLastBindingUpdateTime() const;
-	void SetLastBindingUpdateTime(Time tm);
-	
-	Time GetReachableTime() const;
-	void SetReachableTime(Time tm);
-	
-	uint16_t GetLastBindingUpdateSequence() const;
-	void SetLastBindingUpdateSequence(uint16_t seq);
-	
-	Ptr<Packet> GetPbuPacket() const;
-	void SetPbuPacket(Ptr<Packet> pkt);
-	
-	uint8_t GetRetryCount() const;
-	void IncreaseRetryCount();
-	void ResetRetryCount();
-	
-	Entry *GetNext() const;
-	void SetNext(Entry *entry);
-	
-	int32_t GetRadvdIfIndex() const;
-	void SetRadvdIfIndex(int32_t ifIndex);
-	
+    int32_t GetTunnelId () const;
+    void SetTunnelId (int32_t teid);
+
   private:
-	enum BindingUpdateState_e
+    enum BindingUpdateState_e
 	{
           UNREACHABLE,
 	  UPDATING,
@@ -155,45 +161,49 @@ public:
 
     Ptr<BindingUpdateList> m_buList;
 	
-	BindingUpdateState_e m_state;
+    BindingUpdateState_e m_state;
 	
     Identifier m_mnIdentifier;
 	
-	Identifier m_mnLinkIdentifier;
-	
-	std::list<Ipv6Address> m_homeNetworkPrefixes;
-	
-	Ipv6Address m_magLinkAddress;
-	
-	Ipv6Address m_lmaAddress;
-	
-	int16_t m_ifIndex;
-	
-	int16_t m_tunnelIfIndex;
-	
-	uint8_t m_accessTechnologyType;
-	
-	uint8_t m_handoffIndicator;
-	
-	Time m_lastBindingUpdateTime;
-	
-	Time m_reachableTime;
-	
-	Timer m_retransTimer;
-	
-	Timer m_reachableTimer;
-	
-	Timer m_refreshTimer;
-	
-	uint16_t m_lastBindingUpdateSequence;
-	Ptr<Packet> m_pktPbu;
-	
-	uint8_t m_retryCount;
-	
-	//internal
-	int32_t m_radvdIfIndex; //Radvd Interface Index
-	
-	Entry *m_next;
+    Identifier m_mnLinkIdentifier;
+
+    std::list<Ipv6Address> m_homeNetworkPrefixes;
+
+    Ipv6Address m_magLinkAddress;
+
+    Ipv6Address m_lmaAddress;
+
+    int16_t m_ifIndex;
+
+    int16_t m_tunnelIfIndex;
+
+    uint8_t m_accessTechnologyType;
+
+    uint8_t m_handoffIndicator;
+
+    Time m_lastBindingUpdateTime;
+
+    Time m_reachableTime;
+
+    Timer m_retransTimer;
+
+    Timer m_reachableTimer;
+
+    Timer m_refreshTimer;
+
+    uint16_t m_lastBindingUpdateSequence;
+    Ptr<Packet> m_pktPbu;
+
+    uint8_t m_retryCount;
+
+    //internal
+    int32_t m_radvdIfIndex; // Radvd Interface Index
+
+    Entry *m_next;
+
+    // internal members for LTE
+    uint64_t m_imsi;
+    uint32_t m_teid;
   };
   
 protected:

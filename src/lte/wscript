@@ -2,7 +2,7 @@
 
 def build(bld):
 
-    module = bld.create_ns3_module('lte', ['core', 'network', 'spectrum', 'stats', 'buildings', 'virtual-net-device','point-to-point','applications','internet','csma'])
+    module = bld.create_ns3_module('lte', ['core', 'network', 'spectrum', 'stats', 'buildings', 'virtual-net-device','point-to-point','applications','internet','csma', 'pmipv6'])
     module.source = [
         'model/lte-common.cc',
         'model/lte-spectrum-phy.cc',

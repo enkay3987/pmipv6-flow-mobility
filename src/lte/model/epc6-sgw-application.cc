@@ -291,6 +291,13 @@ Epc6SgwApplication::SetNewHostCallback (Callback<void, uint32_t, uint64_t, uint8
   m_newHost = newHostCallback;
 }
 
+uint32_t
+Epc6SgwApplication::GetTunnelInterfaceId ()
+{
+  NS_LOG_FUNCTION_NOARGS ();
+  return m_tunDevice->GetIfIndex ();
+}
+
 void
 Epc6SgwApplication::DoCreateSessionRequest (EpcS11SapSgw::CreateSessionRequestMessage req)
 {

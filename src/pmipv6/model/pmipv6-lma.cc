@@ -255,7 +255,7 @@ uint8_t Pmipv6Lma::HandlePbu(Ptr<Packet> packet, const Ipv6Address &src, const I
       errStatus = Ipv6MobilityHeader::BA_STATUS_MISSING_MN_IDENTIFIER_OPTION;
     }
   /* 5.3.1 - 7 Check requested MN belongs to this LMA */
-  else if ((pf = GetProfile ()->Lookup (bundle.GetMnIdentifier ())) == 0)
+  else if ((pf = GetProfile ()->LookupMnId (bundle.GetMnIdentifier ())) == 0)
     {
       errStatus = Ipv6MobilityHeader::BA_STATUS_NOT_LMA_FOR_THIS_MOBILE_NODE;
     }

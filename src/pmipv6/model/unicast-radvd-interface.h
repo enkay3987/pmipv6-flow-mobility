@@ -32,29 +32,48 @@ namespace ns3
 
 /**
  * \ingroup radvd
- * \class RadvdInterface
- * \brief Radvd interface configuration.
+ * \class UnicastRadvdInterface
+ * \brief Unicast Radvd interface configuration.
  */
 class UnicastRadvdInterface : public RadvdInterface
 {
 public:
-  UnicastRadvdInterface(uint32_t interface);
+  enum InterfaceType
+  {
+    REGULAR,
+    LTE
+  };
+
+  UnicastRadvdInterface(uint32_t interface, enum InterfaceType interfaceType = REGULAR);
   
-  UnicastRadvdInterface(uint32_t interface, uint32_t maxRtrAdvInterval, uint32_t minRtrAdvInterval);
+  UnicastRadvdInterface(uint32_t interface, uint32_t maxRtrAdvInterval, uint32_t minRtrAdvInterval, enum InterfaceType interfaceType = REGULAR);
   
-  Address GetPhysicalAddress() const;
-  
-  void SetPhysicalAddress(Address addr);
-  
+  enum InterfaceType GetInterfaceType ();
+
   uint32_t GetId () const;
 
+  Address GetPhysicalAddress() const;
+
+  void SetPhysicalAddress(Address addr);
+
+  uint32_t GetTunnelId ();
+
+  void SetTunnelId (uint32_t teid);
+
+  uint64_t GetImsi ();
+
+  void SetImsi (uint64_t imsi);
+
 private:
+  enum InterfaceType m_interfaceType;
   Address m_physicalAddress;
-  
+  uint32_t m_teid;
+  uint64_t m_imsi;
+
+protected:
   uint32_t m_id;
   
   static uint32_t m_idGen;
-  
 };
 
 } /* namespace ns3 */

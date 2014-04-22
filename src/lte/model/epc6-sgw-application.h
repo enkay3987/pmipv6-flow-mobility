@@ -175,6 +175,8 @@ public:
    * \param newHostCallback The callback which should be called on the attachment of a new UE.
    */
   void SetNewHostCallback (Callback<void, uint32_t, uint64_t, uint8_t> newHostCallback);
+
+  uint32_t GetTunnelInterfaceId ();
 private:
 
   // S11 SAP SGW methods
