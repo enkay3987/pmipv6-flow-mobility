@@ -288,7 +288,7 @@ main (int argc, char *argv[])
       oss << "node" << i << "@iith.ac.in";
       Ptr<NetDevice> netDev = ueLteDevs.Get (i);
       Ptr<LteUeNetDevice> ueLteNetDev = DynamicCast<LteUeNetDevice> (netDev);
-      profile->AddProfile (Identifier (oss.str ().c_str ()), Identifier (), Ipv6Address ("a1::200:ff:fe00:2"), std::list<Ipv6Address> (), ueLteNetDev->GetImsi ());
+      profile->AddProfile (Identifier (oss.str ().c_str ()), Identifier (), pgwInternetAddr, std::list<Ipv6Address> (), ueLteNetDev->GetImsi ());
     }
 
   // Enable PCAP traces

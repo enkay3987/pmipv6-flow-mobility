@@ -536,6 +536,7 @@ uint8_t Pmipv6Mag::HandlePba (Ptr<Packet> packet, const Ipv6Address &src, const 
       bule->SetPbuPacket (0);
 
       // Update information
+      bule->SetLmaAddress (src);
       bule->SetHomeNetworkPrefixes (bundle.GetHomeNetworkPrefixes ());
       bule->SetReachableTime (Seconds (pba.GetLifetime ()));
 
