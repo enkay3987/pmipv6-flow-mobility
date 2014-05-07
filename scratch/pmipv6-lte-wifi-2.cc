@@ -27,18 +27,13 @@
 #include "ns3/point-to-point-helper.h"
 #include "ns3/config-store.h"
 #include "ns3/pmipv6-module.h"
-#include "ns3/csma-module.h"
 #include "ns3/wifi-module.h"
-#include "ns3/bridge-module.h"
+
+const std::string traceFilename = "pmipv6-lte-wifi-2";
 
 using namespace ns3;
 
-/**
- * Sample simulation script for LTE+EPC. It instantiates several eNodeB,
- * attaches one UE per eNodeB starts a flow for each UE to  and from a remote host.
- * It also  starts yet another flow between each UE pair.
- */
-NS_LOG_COMPONENT_DEFINE ("LenaPmipv6");
+NS_LOG_COMPONENT_DEFINE ("Pmipv6LteWifi3");
 
 void PrintCompleteNodeInfo(Ptr<Node> node)
 {
@@ -68,7 +63,9 @@ void PrintCompleteNodeInfo(Ptr<Node> node)
 
 void RxTrace (std::string context, Ptr<const Packet> packet, Ptr<Ipv6> ipv6, uint32_t interfaceId)
 {
-  NS_LOG_DEBUG (context << " " << interfaceId);
+  Ipv6Header ipv6Header;
+  packet->PeekHeader (ipv6Header);
+  NS_LOG_DEBUG (context << " " << ipv6Header << " " << interfaceId);
 }
 
 void TxTrace (std::string context, Ptr<const Packet> packet, Ptr<Ipv6> ipv6, uint32_t interfaceId)
@@ -153,13 +150,9 @@ void PrintNodesInfo (Ptr<PointToPointEpc6Pmipv6Helper> epcHelper, NodeContainer 
   NS_LOG_UNCOND ("Remote host");
   PrintCompleteNodeInfo (nodes.Get (2));
 
-  // Print Wifi Mag info
-  NS_LOG_UNCOND ("Wifi Mag");
+  // Print Wifi Ap Mag info
+  NS_LOG_UNCOND ("Wifi Ap Mag");
   PrintCompleteNodeInfo (nodes.Get (3));
-
-  // Print Wifi Ap info
-  NS_LOG_UNCOND ("Wifi Ap");
-  PrintCompleteNodeInfo (nodes.Get (4));
 }
 
 void StopDad (Ptr<Node> node)
@@ -169,16 +162,18 @@ void StopDad (Ptr<Node> node)
   icmpv6L4Protocol->SetAttribute ("DAD", BooleanValue (false));
 }
 
-void InstallWifi (WifiHelper wifi, YansWifiPhyHelper wifiPhy, NqosWifiMacHelper wifiMac, Ptr<Node> ueNode, Address wifiMacAddress)
-{
-  NS_LOG_UNCOND ("Installing Wifi device on UE");
-  Ptr<NetDevice> ueWifiDev = (wifi.Install (wifiPhy, wifiMac, ueNode)).Get (0);
-  // Make the mac address of Wifi same as LTE.
-  ueWifiDev->SetAddress (wifiMacAddress);
-  Ipv6AddressHelper ipv6h;
-  Ipv6InterfaceContainer ueWifiIfs = ipv6h.AssignWithoutAddress (NetDeviceContainer (ueWifiDev));
-  wifiPhy.EnablePcap ("lte-pmipv6", ueWifiDev);
-}
+/**
+ * A MN having both LTE and Wifi NetDevices installed on it moves from a point where it is only connected
+ * to the LTE network to where it senses a Wifi network and initiates a vertical handover over to the Wifi
+ * network. The MAG functionality is installed on the same node as the WifiAp.
+ *
+ * Node 0 - SGW
+ * Node 1 - PGW
+ * Node 2 - Remote Host
+ * Node 3 - UE
+ * Node 4 - eNB
+ * Node 5 - Wifi AP with MAG
+ */
 
 int
 main (int argc, char *argv[])
@@ -186,12 +181,14 @@ main (int argc, char *argv[])
   uint32_t maxPackets = 0xff;
   double simTime = 30;
   double interPacketInterval = 1000;
+  bool enablePcap = false;
 
   // Command line arguments
   CommandLine cmd;
   cmd.AddValue ("simTime", "Total duration of the simulation [s])", simTime);
   cmd.AddValue ("interPacketInterval", "Inter packet interval [ms])", interPacketInterval);
   cmd.AddValue ("maxPackets", "The maximum number of packets to be sent by the application", maxPackets);
+  cmd.AddValue ("enablePcap", "Set true to enable pcap capture", enablePcap);
   cmd.Parse(argc, argv);
 
   Mac48Address magMacAddress ("00:00:aa:bb:cc:dd");
@@ -247,9 +244,12 @@ main (int argc, char *argv[])
   mobility.SetPositionAllocator (enbPositionAlloc);
   mobility.Install (enbNode);
   Ptr<ListPositionAllocator> uePositionAlloc = CreateObject<ListPositionAllocator> ();
-  uePositionAlloc->Add (Vector (0, 20, 0));
+  uePositionAlloc->Add (Vector (-200, 20, 0));
   mobility.SetPositionAllocator (uePositionAlloc);
+  mobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   mobility.Install (ueNode);
+  Ptr<ConstantVelocityMobilityModel> cvm = ueNode->GetObject<ConstantVelocityMobilityModel> ();
+  cvm->SetVelocity (Vector (7.0, 0, 0)); //move to left to right 7.0m/s
 
   // Install LTE Devices to the UE and eNB nodes
   Ptr<NetDevice> enbLteDev = (lteHelper->InstallEnbDevice (NodeContainer (enbNode))).Get (0);
@@ -266,39 +266,24 @@ main (int argc, char *argv[])
   lteHelper->Attach (ueLteDev, enbLteDev, false);
 
   // Setup Wifi network
-  Ptr<Node> wifiMag, wifiAp;
-  wifiMag = CreateObject<Node> ();
-  wifiAp = CreateObject<Node> ();
-  internet.Install (wifiMag);
-  internet.Install (wifiAp);
-  StopDad (wifiMag);
-  StopDad (wifiAp);
+  Ptr<Node> wifiApMag;
+  wifiApMag = CreateObject<Node> ();
+  internet.Install (wifiApMag);
+  // Enable forwarding on the WifiApMag
+  Ptr<Ipv6> ipv6 = wifiApMag->GetObject<Ipv6> ();
+  ipv6->SetAttribute ("IpForward", BooleanValue (true));
 
-  // Create p2p network between wifiMag and and LMA (P-GW).
+  // Create p2p network between wifiApMag and and LMA (P-GW).
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Gb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2ph.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (100)));
-  NetDeviceContainer wifiMagLmaDevs = p2ph.Install (wifiMag, pgw);
+  NetDeviceContainer wifiApMagLmaDevs = p2ph.Install (wifiApMag, pgw);
   ipv6h.SetBase ("aa::", "64");
-  Ipv6InterfaceContainer wifiMagLmaIpIfaces = ipv6h.Assign (wifiMagLmaDevs);
-  Ptr<Ipv6StaticRouting> wifiMagStaticRouting = ipv6RoutingHelper.GetStaticRouting (wifiMag->GetObject<Ipv6> ());
-  wifiMagStaticRouting->SetDefaultRoute (wifiMagLmaIpIfaces.GetAddress (1, 1), wifiMagLmaIpIfaces.GetInterfaceIndex (0));
+  Ipv6InterfaceContainer wifiApMagLmaIpIfaces = ipv6h.Assign (wifiApMagLmaDevs);
+  Ptr<Ipv6StaticRouting> wifiApMagStaticRouting = ipv6RoutingHelper.GetStaticRouting (wifiApMag->GetObject<Ipv6> ());
+  wifiApMagStaticRouting->SetDefaultRoute (wifiApMagLmaIpIfaces.GetAddress (1, 1), wifiApMagLmaIpIfaces.GetInterfaceIndex (0));
 
-  // Create csma network between wifiMag and wifiAp.
-  CsmaHelper csmaHelper;
-  csmaHelper.SetChannelAttribute ("DataRate", DataRateValue (DataRate ("10Gbps")));
-  csmaHelper.SetChannelAttribute ("Delay", TimeValue (MicroSeconds(100)));
-  csmaHelper.SetDeviceAttribute ("Mtu", UintegerValue (1500));
-  NodeContainer wifiMagApNodes;
-  wifiMagApNodes.Add (wifiMag);
-  wifiMagApNodes.Add (wifiAp);
-  NetDeviceContainer wifiMagApDevs = csmaHelper.Install (wifiMagApNodes);
-  wifiMagApDevs.Get (0)->SetAddress (magMacAddress);
-  Ipv6InterfaceContainer wifiMagApIpIfaces = ipv6h.AssignWithoutAddress (wifiMagApDevs);
-  wifiMagApIpIfaces.SetForwarding(0, true);
-  wifiMagApIpIfaces.SetDefaultRouteInAllNodes(0);
-
-  // Attach Wifi AP functionality on the AP node.
+  // Attach Wifi AP functionality on the wifiApMag node.
   Ssid ssid = Ssid ("IITH");
   YansWifiPhyHelper wifiPhy = YansWifiPhyHelper::Default ();
   wifiPhy.SetPcapDataLinkType (YansWifiPhyHelper::DLT_IEEE802_11_RADIO);
@@ -311,28 +296,34 @@ main (int argc, char *argv[])
                    "BeaconGeneration", BooleanValue (true),
                    "BeaconInterval", TimeValue (MicroSeconds (102400)),
                    "EnableBeaconJitter", BooleanValue (true));
-  Ptr<NetDevice> wifiApDev = (wifi.Install (wifiPhy, wifiMac, wifiAp)).Get (0);
-  // Create a bridge between the Wifi Device and CSMA device on the AP node.
-  BridgeHelper bridgeHelper;
-  Ptr<NetDevice> wifiApBrDev = (bridgeHelper.Install (wifiAp, NetDeviceContainer (wifiApDev, wifiMagApDevs.Get (1)))).Get (0);
+  Ptr<NetDevice> wifiApMagDev = (wifi.Install (wifiPhy, wifiMac, wifiApMag)).Get (0);
+  NetDeviceContainer wifiApMagDevs;
+  wifiApMagDevs.Add (wifiApMagDev);
+  wifiApMagDev->SetAddress (magMacAddress);
+  ipv6h.SetBase (Ipv6Address ("b0::"), Ipv6Prefix (64));
+  Ipv6InterfaceContainer wifiMagApIpIfaces = ipv6h.Assign (wifiApMagDevs);
 
   // Install mobility model on AP.
-  Ptr<ListPositionAllocator> wifiApPositionAlloc = CreateObject<ListPositionAllocator> ();
-  wifiApPositionAlloc->Add (Vector(20, 0, 0));
+  Ptr<ListPositionAllocator> wifiApMagPositionAlloc = CreateObject<ListPositionAllocator> ();
+  wifiApMagPositionAlloc->Add (Vector(20, 0, 0));
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
-  mobility.SetPositionAllocator (wifiApPositionAlloc);
-  mobility.Install (wifiAp);
+  mobility.SetPositionAllocator (wifiApMagPositionAlloc);
+  mobility.Install (wifiApMag);
 
   // Add Wifi functionality to UE.
   wifiMac.SetType ("ns3::StaWifiMac",
                    "Ssid", SsidValue (ssid),
                    "ActiveProbing", BooleanValue (false));
-  Simulator::Schedule (Seconds (20), &InstallWifi, wifi, wifiPhy, wifiMac, ueNode, ueLteDev->GetAddress ());
+  NS_LOG_UNCOND ("Installing Wifi device on UE");
+  Ptr<NetDevice> ueWifiDev = (wifi.Install (wifiPhy, wifiMac, ueNode)).Get (0);
+  // Make the mac address of Wifi same as LTE.
+  ueWifiDev->SetAddress (ueLteDev->GetAddress ());
+  Ipv6InterfaceContainer ueWifiIfs = ipv6h.AssignWithoutAddress (NetDeviceContainer (ueWifiDev));
 
   // Add Wifi Mag functionality to WifiMag node.
   Pmipv6MagHelper magHelper;
   magHelper.SetProfileHelper (epcHelper->GetPmipv6ProfileHelper ());
-  magHelper.Install (wifiMag, wifiMagApIpIfaces.GetAddress (0, 0), NodeContainer (wifiAp));
+  magHelper.Install (wifiApMag);
 
   // Add PMIPv6 profiles.
   Ptr<Pmipv6ProfileHelper> profile = epcHelper->GetPmipv6ProfileHelper ();
@@ -342,10 +333,14 @@ main (int argc, char *argv[])
   profile->AddProfile (Identifier ("node1@iith.ac.in"), Identifier (Mac48Address::ConvertFrom(ueLteNetDev->GetAddress())), pgwInternetAddr, std::list<Ipv6Address> (), ueLteNetDev->GetImsi ());
 
   // Enable PCAP traces
-  p2ph.EnablePcapAll ("lte-pmipv6");
-  epcHelper->EnablePcap ("lte-pmipv6", ueLteDev);
-  epcHelper->EnablePcap ("lte-pmipv6", enbLteDev);
-  wifiPhy.EnablePcap ("lte-pmipv6", wifiApDev);
+  if (enablePcap)
+    {
+      p2ph.EnablePcapAll (traceFilename);
+      epcHelper->EnablePcap (traceFilename, ueLteDev);
+      epcHelper->EnablePcap (traceFilename, enbLteDev);
+      wifiPhy.EnablePcap (traceFilename, wifiApMagDev);
+      wifiPhy.EnablePcap (traceFilename, ueWifiDev);
+    }
 
   // Add IP traces to all nodes.
   Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Rx", MakeCallback (&RxTrace));
@@ -361,18 +356,15 @@ main (int argc, char *argv[])
   args.interPacketInterval = interPacketInterval;
   args.maxPackets = maxPackets;
   args.remoteHostAddr = remoteHostAddr;
-  Simulator::Schedule (Seconds (10), &InstallApplications, args);
+  Simulator::Schedule (Seconds (5), &InstallApplications, args);
 
   // Print Information
   NodeContainer nodes;
   nodes.Add (enbNode);
   nodes.Add (ueNode);
   nodes.Add (remoteHost);
-  nodes.Add (wifiMag);
-  nodes.Add (wifiAp);
+  nodes.Add (wifiApMag);
   PrintNodesInfo (epcHelper, nodes);
-  // Schedule print information
-  Simulator::Schedule (Seconds (23), &PrintNodesInfo, epcHelper, nodes);
 
   // Run simulation
   Simulator::Stop(Seconds(simTime));
