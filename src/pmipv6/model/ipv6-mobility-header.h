@@ -461,6 +461,18 @@ public:
   void SetFlagP(bool p);
 
   /**
+   * \brief Get the T flag.
+   * \return T flag
+   */
+  bool GetFlagT() const;
+
+  /**
+   * \brief Set the T flag.
+   * \param T value
+   */
+  void SetFlagT(bool t);
+
+  /**
    * \brief Get the Reserved value.
    * \return Reserved value
    */
@@ -552,6 +564,11 @@ private:
   bool m_flagP;
 
   /**
+   * \brief The T flag.
+   */
+  bool m_flagT;
+
+  /**
    * \brief The reserved value.
    */
   uint16_t m_reserved2;
@@ -640,6 +657,18 @@ public:
   void SetFlagP(bool p);
 
   /**
+   * \brief Get the T flag.
+   * \return T flag
+   */
+  bool GetFlagT() const;
+
+  /**
+   * \brief Set the T flag.
+   * \param T value
+   */
+  void SetFlagT(bool t);
+
+  /**
    * \brief Get the Reserved2 field.
    * \return reserved2 value
    */
@@ -721,6 +750,11 @@ private:
    * \brief The P flag.
    */
   bool m_flagP;
+
+  /**
+   * \brief The T flag.
+   */
+  bool m_flagT;
 
   /**
    * \brief The reserved value.

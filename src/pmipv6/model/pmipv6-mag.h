@@ -55,6 +55,7 @@ public:
   void ClearRadvdInterface(BindingUpdateList::Entry *bule);
   
   Ptr<Packet> BuildPbu(BindingUpdateList::Entry *bule);
+  Ptr<Packet> BuildHua(BindingUpdateList::Entry *bule, std::list<Ipv6Address> hnps);
   
 protected:
   virtual void NotifyNewAggregate();
@@ -70,7 +71,8 @@ protected:
   
   virtual void HandleRegularNewNode (Mac48Address from, Mac48Address to, uint8_t att);
   virtual void HandleLteNewNode (uint32_t teid, uint64_t imsi, uint8_t att);
-  virtual uint8_t HandlePba(Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface);
+  virtual uint8_t HandlePba (Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface);
+  virtual uint8_t HandleHur (Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface);
   
 private:
   

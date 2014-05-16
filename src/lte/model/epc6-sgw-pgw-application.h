@@ -193,9 +193,9 @@ private:
     void SetEnbAddr (Ipv6Address addr);
 
     /** 
-     * \return the address of the UE
+     * \return the addresses of the UE
      */
-    Ipv6Address GetUeAddr ();
+    std::list<Ipv6Address> GetUeAddr ();
 
     /** 
      * set the address of the UE
@@ -208,7 +208,7 @@ private:
   private:
     EpcTftClassifier m_tftClassifier;
     Ipv6Address m_enbAddr;
-    Ipv6Address m_ueAddr;
+    std::list<Ipv6Address> m_ueAddrs;
     std::map<uint8_t, uint32_t> m_teidByBearerIdMap;
   };
 

@@ -225,6 +225,44 @@ Ptr<Packet> Pmipv6Lma::BuildPba(Ipv6MobilityBindingUpdateHeader pbu, Ipv6Mobilit
   return p;
 }
 
+Ptr<Packet> Pmipv6Lma::BuildHur (BindingCache::Entry *bce, Ipv6Address hnp, uint8_t status)
+{
+  NS_LOG_FUNCTION (this << bce << hnp << status);
+
+  Ptr<Packet> p = Create<Packet> ();
+
+  Ipv6MobilityBindingAckHeader hur;
+
+  Ipv6MobilityOptionMobileNodeIdentifierHeader MnIdh;
+  Ipv6MobilityOptionHomeNetworkPrefixHeader hnph;
+  Ipv6MobilityOptionAccessTechnologyTypeHeader atth;
+  Ipv6MobilityOptionMobileNodeLinkLayerIdentifierHeader mnllidh;
+  Ipv6MobilityOptionTimestampHeader timestamph;
+
+  hur.SetStatus (status);
+  hur.SetFlagP (true);
+  hur.SetFlagT(true);
+//  hur.SetSequence (bce->GetLastBindingUpdateSequence ());
+//  hur.SetLifetime ((uint16_t)bce->GetReachableTime ().GetSeconds ());
+
+  MnIdh.SetSubtype (1);
+  MnIdh.SetNodeIdentifier (bce->GetMnIdentifier ());
+  hur.AddOption (MnIdh);
+
+  hnph.SetPrefix ((hnp));
+  hnph.SetPrefixLength (64);
+  hur.AddOption (hnph);
+
+  mnllidh.SetLinkLayerIdentifier (bce->GetMnLinkIdentifier ());
+  hur.AddOption (mnllidh);
+
+  timestamph.SetTimestamp (bce->GetLastBindingUpdateTime ());
+  hur.AddOption (timestamph);
+
+  p->AddHeader (hur);
+  return p;
+}
+
 uint8_t Pmipv6Lma::HandlePbu(Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface)
 {
   NS_LOG_FUNCTION (this << packet << src << dst << interface);
@@ -245,7 +283,9 @@ uint8_t Pmipv6Lma::HandlePbu(Ptr<Packet> packet, const Ipv6Address &src, const I
   
   uint8_t errStatus = 0;
   BindingCache::Entry *bce = 0;
+  BindingCache::Entry *bce2 = 0;
   Pmipv6Profile::Entry *pf = 0;
+  Ipv6Address prefix;
   
   bool delayedRegister = false;
   
@@ -412,6 +452,36 @@ uint8_t Pmipv6Lma::HandlePbu(Ptr<Packet> packet, const Ipv6Address &src, const I
                         }
                       return 0;
                     }
+                  else if (bce->GetAccessTechnologyType () != bundle.GetAccessTechnologyType () || bce->GetMnLinkIdentifier () != mnLinkId)
+                    {
+                      NS_LOG_LOGIC ("Another interface of same node connected to another MAG");
+
+                      NS_LOG_LOGIC ("Creating new Binding Cache Entry.");
+                      bce2 = m_bCache->Add (mnId);
+                      bce2->SetProxyCoa (src);
+                      bce2->SetMnLinkIdentifier (mnLinkId);
+                      bce2->SetAccessTechnologyType (bundle.GetAccessTechnologyType ());
+                      bce2->SetHandoffIndicator (bundle.GetHandoffIndicator ());
+                      bce2->SetMagLinkAddress (bundle.GetMagLinkAddress ());
+                      bce2->SetLastBindingUpdateTime (bundle.GetTimestamp ());
+                      bce2->SetReachableTime (Seconds (pbu.GetLifetime ()));
+                      bce2->SetLastBindingUpdateSequence (pbu.GetSequence ());
+                      // Retrieve HNPs from the other BCE and add a new prefix to it.
+                      std::list<Ipv6Address> hnpList = bce->GetHomeNetworkPrefixes ();
+                      prefix = m_prefixPool->Assign ();
+                      NS_LOG_LOGIC ("Assign new Prefix for another interface from Pool: " << prefix);
+                      hnpList.push_back (prefix);
+                      bce2->SetHomeNetworkPrefixes (hnpList);
+                      if (pf)
+                        {
+                          pf->SetHomeNetworkPrefixes (hnpList);
+                        }
+                      SetupTunnelAndRouting (bce2);
+                      bce2->MarkReachable ();
+                      // start lifetime timer
+                      bce2->StopReachableTimer ();
+                      bce2->StartReachableTimer ();
+                    } // Access technology or MN Link Id doesn't match to previous BCE.
                   else
                     {
                       NS_LOG_LOGIC ("Handoff in two different MAGs for the same interface");
@@ -478,7 +548,7 @@ uint8_t Pmipv6Lma::HandlePbu(Ptr<Packet> packet, const Ipv6Address &src, const I
                 }
               else
                 {
-                  Ipv6Address prefix = m_prefixPool->Assign ();
+                  prefix = m_prefixPool->Assign ();
                   NS_LOG_LOGIC ("Assign new Prefix from Pool: " << prefix);
                   hnpList.push_back (prefix);
                   bce->SetHomeNetworkPrefixes (hnpList);
@@ -504,13 +574,86 @@ uint8_t Pmipv6Lma::HandlePbu(Ptr<Packet> packet, const Ipv6Address &src, const I
   Ptr<Packet> pktPba;
   if (bce != 0)
     {
-      pktPba = BuildPba (bce, errStatus);
+      // New interface attachment for existing node.
+      if (bce2 == 0)
+        {
+          pktPba = BuildPba (bce, errStatus);
+          SendMessage (pktPba, src, 64);
+        }
+      else
+        {
+          // Send PBA to the MAG with the new interface attachment.
+          pktPba = BuildPba (bce2, errStatus);
+          SendMessage (pktPba, src, 64);
+
+          // For all previous MAGs send HUR
+          NS_LOG_LOGIC("Sending HURs to all MAGs handling the MN's other interface attachments.");
+          // The new BCE would be the first in the linked list.
+          BindingCache::Entry *it = bce2->GetNext ();
+          while (it != 0)
+            {
+              Ptr<Packet> pktHur = BuildHur (it, prefix, errStatus);
+              NS_LOG_LOGIC("HUR sent to " << it->GetProxyCoa () << " MN id " << it->GetMnIdentifier () << " MN Link Id " << it->GetMnLinkIdentifier () << " ATT " << it->GetAccessTechnologyType ());
+              SendMessage (pktHur, it->GetProxyCoa (), 64);
+              it = it->GetNext ();
+            }
+        }
     }
   else
     {
       pktPba = BuildPba (pbu, bundle, errStatus);
+      SendMessage (pktPba, src, 64);
     }
-  SendMessage (pktPba, src, 64);
+  return 0;
+}
+
+uint8_t Pmipv6Lma::HandleHua(Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface)
+{
+  NS_LOG_FUNCTION (this << packet << src << dst << interface);
+
+  Ptr<Packet> p = packet->Copy ();
+  Ipv6MobilityBindingUpdateHeader hua;
+  Ipv6MobilityOptionBundle bundle;
+
+  p->RemoveHeader (hua);
+  Ptr<Ipv6MobilityDemux> ipv6MobilityDemux = GetNode ()->GetObject<Ipv6MobilityDemux> ();
+  NS_ASSERT (ipv6MobilityDemux);
+  Ptr<Ipv6Mobility> ipv6Mobility = ipv6MobilityDemux->GetMobility (hua.GetMhType ());
+  NS_ASSERT (ipv6Mobility);
+  uint8_t length = ((hua.GetHeaderLen () + 1) << 3) - hua.GetOptionsOffset ();
+  ipv6Mobility->ProcessOptions (packet, hua.GetOptionsOffset (), length, bundle);
+
+  // Error Process for Mandatory Options
+  if (bundle.GetMnIdentifier ().IsEmpty () ||
+      bundle.GetHomeNetworkPrefixes ().size () == 0 ||
+      bundle.GetTimestamp ().GetMicroSeconds () == 0)
+   {
+     NS_LOG_LOGIC ("HUA Option missing. Ignored.");
+     return 0;
+   }
+  // Check timestamp must be less than current time.
+  if (bundle.GetTimestamp () > Simulator::Now ())
+   {
+     NS_LOG_LOGIC ("Timestamp is mismatched. Ignored.");
+     return 0;
+   }
+  BindingCache::Entry *bule = m_bCache->Lookup (bundle.GetMnIdentifier (), bundle.GetAccessTechnologyType(), bundle.GetMnLinkIdentifier ());
+  if (bule == 0)
+   {
+     NS_LOG_LOGIC ("No matched HUA for HUR. Ignored.");
+     return 0;
+   }
+
+  // Update HNPs for the entry for which the HUA is meant for.
+  std::list<Ipv6Address> huaHnps = bundle.GetHomeNetworkPrefixes();
+  std::list<Ipv6Address> hnps = bule->GetHomeNetworkPrefixes();
+  for (std::list<Ipv6Address>::iterator it = huaHnps.begin(); it != huaHnps.end(); it++)
+    hnps.push_back (*it);
+  bule->SetHomeNetworkPrefixes (hnps);
+
+  // Update tunnelling by including the new prefixes (specified in HUA).
+  ClearTunnelAndRouting (bule);
+  SetupTunnelAndRouting (bule);
   return 0;
 }
 

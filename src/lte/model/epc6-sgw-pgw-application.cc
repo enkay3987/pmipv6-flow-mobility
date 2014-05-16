@@ -72,16 +72,16 @@ Epc6SgwPgwApplication::UeInfo::SetEnbAddr (Ipv6Address enbAddr)
   m_enbAddr = enbAddr;
 }
 
-Ipv6Address
+std::list<Ipv6Address>
 Epc6SgwPgwApplication::UeInfo::GetUeAddr ()
 {
-  return m_ueAddr;
+  return m_ueAddrs;
 }
 
 void
 Epc6SgwPgwApplication::UeInfo::SetUeAddr (Ipv6Address ueAddr)
 {
-  m_ueAddr = ueAddr;
+  m_ueAddrs.push_back (ueAddr);
 }
 
 /////////////////////////
@@ -201,7 +201,6 @@ Epc6SgwPgwApplication::SendToS1uSocket (Ptr<Packet> packet, Ipv6Address enbAddr,
   uint32_t flags = 0;
   m_s1uSocket->SendTo (packet, flags, Inet6SocketAddress(enbAddr, m_gtpuUdpPort));
 }
-
 
 void 
 Epc6SgwPgwApplication::SetS11SapMme (EpcS11SapMme * s)

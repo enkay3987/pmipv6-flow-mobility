@@ -33,7 +33,7 @@ const std::string traceFilename = "pmipv6-lte-wifi-2";
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("Pmipv6LteWifi3");
+NS_LOG_COMPONENT_DEFINE ("Pmipv6LteWifi2");
 
 void PrintCompleteNodeInfo(Ptr<Node> node)
 {
@@ -128,31 +128,31 @@ void InstallApplications (Args args)
   clientApps.Start (Seconds (1));
 }
 
-void PrintNodesInfo (Ptr<PointToPointEpc6Pmipv6Helper> epcHelper, NodeContainer nodes)
+void PrintNodesInfo (NodeContainer nodes)
 {
   // Print PGW info
   NS_LOG_UNCOND ("PGW node");
-  PrintCompleteNodeInfo (epcHelper->GetPgwNode ());
+  PrintCompleteNodeInfo (nodes.Get (0));
 
   // Print SGW info
   NS_LOG_UNCOND ("SGW node");
-  PrintCompleteNodeInfo (epcHelper->GetSgwNode ());
+  PrintCompleteNodeInfo (nodes.Get (1));
 
   // Print EnB Info
   NS_LOG_UNCOND ("EnB");
-  PrintCompleteNodeInfo (nodes.Get (0));
+  PrintCompleteNodeInfo (nodes.Get (2));
 
   // Print UE Info
   NS_LOG_UNCOND ("UE");
-  PrintCompleteNodeInfo (nodes.Get (1));
+  PrintCompleteNodeInfo (nodes.Get (3));
 
   // Print remote host info
   NS_LOG_UNCOND ("Remote host");
-  PrintCompleteNodeInfo (nodes.Get (2));
+  PrintCompleteNodeInfo (nodes.Get (4));
 
   // Print Wifi Ap Mag info
   NS_LOG_UNCOND ("Wifi Ap Mag");
-  PrintCompleteNodeInfo (nodes.Get (3));
+  PrintCompleteNodeInfo (nodes.Get (5));
 }
 
 void StopDad (Ptr<Node> node)
@@ -360,11 +360,14 @@ main (int argc, char *argv[])
 
   // Print Information
   NodeContainer nodes;
+  nodes.Add (epcHelper->GetPgwNode ());
+  nodes.Add (epcHelper->GetSgwNode ());
   nodes.Add (enbNode);
   nodes.Add (ueNode);
   nodes.Add (remoteHost);
   nodes.Add (wifiApMag);
-  PrintNodesInfo (epcHelper, nodes);
+  PrintNodesInfo (nodes);
+  Simulator::Schedule (Seconds (15), &PrintNodesInfo, nodes);
 
   // Run simulation
   Simulator::Stop(Seconds(simTime));

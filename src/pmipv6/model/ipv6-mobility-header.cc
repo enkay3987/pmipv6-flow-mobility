@@ -257,6 +257,7 @@ Ipv6MobilityBindingUpdateHeader::Ipv6MobilityBindingUpdateHeader ()
   SetFlagM(0);
   SetFlagR(0);
   SetFlagP(0);
+  SetFlagT(0);
   SetReserved2(0);
   SetLifetime(0);
 }
@@ -345,6 +346,16 @@ void Ipv6MobilityBindingUpdateHeader::SetFlagP (bool p)
   m_flagP = p;
 }
 
+bool Ipv6MobilityBindingUpdateHeader::GetFlagT () const
+{
+  return m_flagT;
+}
+
+void Ipv6MobilityBindingUpdateHeader::SetFlagT (bool t)
+{
+  m_flagT = t;
+}
+
 uint16_t Ipv6MobilityBindingUpdateHeader::GetReserved2 () const
 {
   return m_reserved2;
@@ -419,6 +430,10 @@ void Ipv6MobilityBindingUpdateHeader::Serialize (Buffer::Iterator start) const
     reserved2 |= (uint16_t)(1 << 9);
   }
   
+  if (m_flagT) {
+    reserved2 |= (uint16_t)(1 << 7);
+  }
+
   i.WriteHtonU16 (reserved2);
   i.WriteHtonU16 (m_lifetime);
   
@@ -447,6 +462,7 @@ uint32_t Ipv6MobilityBindingUpdateHeader::Deserialize (Buffer::Iterator start)
   m_flagM = false;
   m_flagR = false;
   m_flagP = false;
+  m_flagT = false;
   
   if (m_reserved2 & (1 << 15))
     {
@@ -481,6 +497,11 @@ uint32_t Ipv6MobilityBindingUpdateHeader::Deserialize (Buffer::Iterator start)
   if (m_reserved2 & (1 << 9))
     {
       m_flagP = true;
+    }
+
+  if (m_reserved2 & (1 << 7))
+    {
+      m_flagT = true;
     }
 
   m_lifetime = i.ReadNtohU16 ();
@@ -518,6 +539,7 @@ Ipv6MobilityBindingAckHeader::Ipv6MobilityBindingAckHeader ()
   SetFlagK(0);
   SetFlagR(0);
   SetFlagP(0);
+  SetFlagT(0);
   SetReserved2(0);
   SetSequence(0);
   SetLifetime(0);
@@ -565,6 +587,16 @@ bool Ipv6MobilityBindingAckHeader::GetFlagP () const
 void Ipv6MobilityBindingAckHeader::SetFlagP (bool p)
 {
   m_flagP = p;
+}
+
+bool Ipv6MobilityBindingAckHeader::GetFlagT () const
+{
+  return m_flagT;
+}
+
+void Ipv6MobilityBindingAckHeader::SetFlagT (bool t)
+{
+  m_flagT = t;
 }
 
 uint8_t Ipv6MobilityBindingAckHeader::GetReserved2 () const
@@ -634,6 +666,10 @@ void Ipv6MobilityBindingAckHeader::Serialize (Buffer::Iterator start) const
     reserved2 |= (uint8_t)(1 << 5);
   }
   
+  if (m_flagT) {
+    reserved2 |= (uint8_t)(1 << 4);
+  }
+
   i.WriteU8 (reserved2);
   i.WriteHtonU16 (m_sequence);
   i.WriteHtonU16 (m_lifetime);
@@ -659,6 +695,7 @@ uint32_t Ipv6MobilityBindingAckHeader::Deserialize (Buffer::Iterator start)
   m_flagK = false;
   m_flagR = false;
   m_flagP = false;
+  m_flagT = false;
   
   if (m_reserved2 & (1 << 7))
     {
@@ -673,6 +710,11 @@ uint32_t Ipv6MobilityBindingAckHeader::Deserialize (Buffer::Iterator start)
   if (m_reserved2 & (1 << 5))
     {
       m_flagP = true;
+    }
+
+  if (m_reserved2 & (1 << 4))
+    {
+      m_flagT = true;
     }
 
   m_sequence = i.ReadNtohU16 ();

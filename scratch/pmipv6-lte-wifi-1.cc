@@ -130,27 +130,27 @@ void InstallApplications (Args args)
   clientApps.Start (Seconds (1));
 }
 
-void PrintNodesInfo (Ptr<PointToPointEpc6Pmipv6Helper> epcHelper, NodeContainer nodes)
+void PrintNodesInfo (NodeContainer nodes)
 {
   // Print PGW info
   NS_LOG_UNCOND ("PGW node");
-  PrintCompleteNodeInfo (epcHelper->GetPgwNode ());
+  PrintCompleteNodeInfo (nodes.Get (0));
 
   // Print SGW info
   NS_LOG_UNCOND ("SGW node");
-  PrintCompleteNodeInfo (epcHelper->GetSgwNode ());
+  PrintCompleteNodeInfo (nodes.Get (1));
 
   // Print EnB Info
   NS_LOG_UNCOND ("EnB");
-  PrintCompleteNodeInfo (nodes.Get (0));
+  PrintCompleteNodeInfo (nodes.Get (2));
 
   // Print UE Info
   NS_LOG_UNCOND ("UE");
-  PrintCompleteNodeInfo (nodes.Get (1));
+  PrintCompleteNodeInfo (nodes.Get (3));
 
   // Print remote host info
   NS_LOG_UNCOND ("Remote host");
-  PrintCompleteNodeInfo (nodes.Get (2));
+  PrintCompleteNodeInfo (nodes.Get (4));
 
   // Print Wifi Mag info
   NS_LOG_UNCOND ("Wifi Mag");
@@ -379,14 +379,16 @@ main (int argc, char *argv[])
 
   // Print Information
   NodeContainer nodes;
+  nodes.Add (epcHelper->GetPgwNode ());
+  nodes.Add (epcHelper->GetSgwNode ());
   nodes.Add (enbNode);
   nodes.Add (ueNode);
   nodes.Add (remoteHost);
   nodes.Add (wifiMag);
   nodes.Add (wifiAp);
-  PrintNodesInfo (epcHelper, nodes);
+  PrintNodesInfo (nodes);
   // Schedule print information
-  Simulator::Schedule (Seconds (23), &PrintNodesInfo, epcHelper, nodes);
+  Simulator::Schedule (Seconds (23), &PrintNodesInfo, nodes);
 
   // Run simulation
   Simulator::Stop(Seconds(simTime));

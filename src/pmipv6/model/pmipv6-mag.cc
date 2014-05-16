@@ -309,6 +309,65 @@ Ptr<Packet> Pmipv6Mag::BuildPbu (BindingUpdateList::Entry *bule)
   return p;
 }
 
+Ptr<Packet> Pmipv6Mag::BuildHua (BindingUpdateList::Entry *bule, std::list<Ipv6Address> hnps)
+{
+  NS_LOG_FUNCTION ("BuildHua" << bule);
+
+  Ptr<Packet> p = Create<Packet> ();
+
+  Ipv6MobilityBindingUpdateHeader hua;
+
+  Ipv6MobilityOptionMobileNodeIdentifierHeader mnidh;
+  Ipv6MobilityOptionHomeNetworkPrefixHeader hnph;
+  Ipv6MobilityOptionAccessTechnologyTypeHeader atth;
+  Ipv6MobilityOptionMobileNodeLinkLayerIdentifierHeader mnllidh;
+  Ipv6MobilityOptionTimestampHeader timestamph;
+
+  hua.SetSequence (bule->GetLastBindingUpdateSequence ());
+  hua.SetFlagA (true);
+  hua.SetFlagH (true);
+  hua.SetFlagL (true);
+  hua.SetFlagP (true);
+  hua.SetFlagT (true);
+  hua.SetLifetime ((uint16_t) Ipv6MobilityL4Protocol::MAX_BINDING_LIFETIME);
+
+  // Add Mobile Node Identifier Option
+  mnidh.SetSubtype (1);
+  mnidh.SetNodeIdentifier (bule->GetMnIdentifier ());
+  hua.AddOption (mnidh);
+
+  // Add Home Network Prefix List (if it has)
+  if (hnps.size () > 0)
+    {
+      for (std::list<Ipv6Address>::iterator i = hnps.begin (); i != hnps.end (); i++)
+        {
+          hnph.SetPrefix ((*i));
+          hnph.SetPrefixLength (64);
+          hua.AddOption (hnph);
+        }
+    }
+  else
+    {
+      hnph.SetPrefix (Ipv6Address::GetAny ());
+      hnph.SetPrefixLength (0);
+      hua.AddOption (hnph);
+    }
+
+  atth.SetAccessTechnologyType (bule->GetAccessTechnologyType ());
+  hua.AddOption (atth);
+
+  // Set the MN Link identifier
+  mnllidh.SetLinkLayerIdentifier (bule->GetMnLinkIdentifier ());
+  hua.AddOption (mnllidh);
+
+  // Add Timestamp Option
+  timestamph.SetTimestamp (bule->GetLastBindingUpdateTime ());
+  hua.AddOption (timestamph);
+
+  p->AddHeader(hua);
+  return p;
+}
+
 void Pmipv6Mag::HandleRegularNewNode (Mac48Address from, Mac48Address to, uint8_t att)
 {
   NS_LOG_FUNCTION (this << from << to <<(uint32_t)att);
@@ -579,6 +638,69 @@ uint8_t Pmipv6Mag::HandlePba (Ptr<Packet> packet, const Ipv6Address &src, const 
       break;
     }
 
+  return 0;
+}
+
+uint8_t Pmipv6Mag::HandleHur (Ptr<Packet> packet, const Ipv6Address &src, const Ipv6Address &dst, Ptr<Ipv6Interface> interface)
+{
+  NS_LOG_FUNCTION (this << packet << src << dst << interface);
+
+  Ptr<Packet> p = packet->Copy ();
+  Ipv6MobilityBindingAckHeader hur;
+  Ipv6MobilityOptionBundle bundle;
+
+  p->RemoveHeader (hur);
+  Ptr<Ipv6MobilityDemux> ipv6MobilityDemux = GetNode ()->GetObject<Ipv6MobilityDemux> ();
+  NS_ASSERT (ipv6MobilityDemux);
+  Ptr<Ipv6Mobility> ipv6Mobility = ipv6MobilityDemux->GetMobility (hur.GetMhType ());
+  NS_ASSERT (ipv6Mobility);
+  uint8_t length = ((hur.GetHeaderLen () + 1) << 3) - hur.GetOptionsOffset ();
+  ipv6Mobility->ProcessOptions (packet, hur.GetOptionsOffset (), length, bundle);
+
+  // Error Process for Mandatory Options
+  if (bundle.GetMnIdentifier ().IsEmpty () ||
+      bundle.GetHomeNetworkPrefixes ().size () == 0 ||
+      bundle.GetTimestamp ().GetMicroSeconds () == 0)
+    {
+      NS_LOG_LOGIC ("HUR Option missing, HUR ignored.");
+      return 0;
+    }
+  // Check timestamp must be less than current time.
+  if (bundle.GetTimestamp () > Simulator::Now ())
+    {
+      NS_LOG_LOGIC ("Timestamp mismatch, HUR ignored.");
+      return 0;
+    }
+  BindingUpdateList::Entry *bule = m_buList->Lookup (bundle.GetMnIdentifier ());
+  if (bule == 0)
+    {
+      NS_LOG_LOGIC ("No BUL entry, HUR ignored.");
+      return 0;
+    }
+
+  NS_LOG_LOGIC ("Adding HNPs to sent in HUR to the BUL entry.");
+  std::list<Ipv6Address> hnps = bule->GetHomeNetworkPrefixes ();
+  std::list<Ipv6Address> sentHnps = bundle.GetHomeNetworkPrefixes ();
+  for (std::list<Ipv6Address>::iterator it = sentHnps.begin (); it != sentHnps.end (); it++)
+    {
+      hnps.push_back (*it);
+    }
+  bule->SetHomeNetworkPrefixes (hnps);
+
+  // Setup tunnel for all the prefixes associated with the BUL entry.
+  ClearTunnelAndRouting (bule);
+  SetupTunnelAndRouting (bule);
+
+  // Setup the Unicast Radvd interface as well.
+  ClearRadvdInterface (bule);
+  if (IsLteMag ())
+    SetupLteRadvdInterface (bule);
+  else
+    SetupRegularRadvdInterface (bule);
+
+  // Send HUA to LMA.
+  Ptr<Packet> pktHua = BuildHua (bule, bundle.GetHomeNetworkPrefixes ());
+  SendMessage (pktHua, src, 64);
   return 0;
 }
 
