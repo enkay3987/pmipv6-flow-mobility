@@ -42,6 +42,8 @@
 
 #include "ns3/ipv6-static-routing-helper.h"
 #include "ns3/ipv6-static-routing.h"
+#include "ns3/ipv6-flow-routing-helper.h"
+#include "ns3/ipv6-flow-routing.h"
 
 #include "ns3/ipv6-static-source-routing-helper.h"
 
@@ -664,7 +666,7 @@ bool Pmipv6Lma::SetupTunnelAndRouting (BindingCache::Entry *bce)
   // Create tunnel
   Ptr<Ipv6TunnelL4Protocol> th = GetNode ()->GetObject<Ipv6TunnelL4Protocol> ();
   NS_ASSERT (th);
-  uint16_t tunnelIf = th->AddTunnel (bce->GetProxyCoa ());
+  uint16_t tunnelIf = th->AddTunnel (bce->GetProxyCoa (), bce->GetAccessTechnologyType ());
   bce->SetTunnelIfIndex (tunnelIf);
   
   // Routing setup by static routing protocol
@@ -672,11 +674,16 @@ bool Pmipv6Lma::SetupTunnelAndRouting (BindingCache::Entry *bce)
   Ptr<Ipv6> ipv6 = GetNode ()->GetObject<Ipv6> ();
   Ptr<Ipv6StaticRouting> staticRouting = staticRoutingHelper.GetStaticRouting (ipv6);
   
+  // Routing setup by flow routing protocol
+  Ipv6FlowRoutingHelper flowRoutingHelper;
+  Ptr<Ipv6FlowRouting> flowRouting = flowRoutingHelper.GetFlowRouting (ipv6);
+
   std::list<Ipv6Address> hnpList = bce->GetHomeNetworkPrefixes ();
   for (std::list<Ipv6Address>::iterator i = hnpList.begin (); i != hnpList.end (); i++)
     {
       NS_LOG_LOGIC ("Add Route " << (*i) << "/64 via " << (uint32_t) bce->GetTunnelIfIndex ());
       staticRouting->AddNetworkRouteTo ((*i), Ipv6Prefix (64), bce->GetTunnelIfIndex ());
+      flowRouting->AddNetworkRouteTo ((*i), Ipv6Prefix (64), bce->GetTunnelIfIndex ());
     }
   return true;
 }
@@ -690,11 +697,16 @@ void Pmipv6Lma::ClearTunnelAndRouting (BindingCache::Entry *bce)
   Ptr<Ipv6> ipv6 = GetNode ()->GetObject<Ipv6> ();
   Ptr<Ipv6StaticRouting> staticRouting = staticRoutingHelper.GetStaticRouting (ipv6);
   
+  // Routing setup by flow routing protocol
+  Ipv6FlowRoutingHelper flowRoutingHelper;
+  Ptr<Ipv6FlowRouting> flowRouting = flowRoutingHelper.GetFlowRouting (ipv6);
+
   std::list<Ipv6Address> hnpList = bce->GetHomeNetworkPrefixes ();
   for (std::list<Ipv6Address>::iterator i = hnpList.begin (); i != hnpList.end (); i++)
     {
       NS_LOG_LOGIC ("Add Route " << (*i) << "/64 via " << (uint32_t)bce->GetTunnelIfIndex ());
       staticRouting->RemoveRoute ((*i), Ipv6Prefix (64), bce->GetTunnelIfIndex (), (*i));
+      flowRouting->RemoveRoute ((*i), Ipv6Prefix (64), bce->GetTunnelIfIndex (), (*i));
     }
     
   // Remove tunnel device.
@@ -716,7 +728,7 @@ bool Pmipv6Lma::ModifyTunnelAndRouting (BindingCache::Entry *bce)
   Ptr<Ipv6StaticRouting> staticRouting = staticRoutingHelper.GetStaticRouting (ipv6);
   
   oldTunnelIf = bce->GetTunnelIfIndex ();
-  uint16_t tunnelIf = th->ModifyTunnel (bce->GetOldProxyCoa (), bce->GetProxyCoa ());
+  uint16_t tunnelIf = th->ModifyTunnel (bce->GetOldProxyCoa (), bce->GetProxyCoa (), bce->GetAccessTechnologyType ());
   
   // Change routes only if the new tunnel device is different.
   if (oldTunnelIf != tunnelIf)

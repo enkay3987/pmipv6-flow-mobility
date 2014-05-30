@@ -162,6 +162,11 @@ enum IpL4Protocol::RxStatus Ipv6TunnelL4Protocol::Receive (Ptr<Packet> packet, I
       return IpL4Protocol::RX_OK;
     }
   
+  if (m_receiveCallback.IsNull ())
+    NS_LOG_DEBUG ("Receive callback is NULL.");
+  else
+    m_receiveCallback (packet, header.GetSourceAddress ());
+
   Ptr<Packet> p = packet->Copy();
   
   Ipv6Header innerHeader;
@@ -234,9 +239,9 @@ IpL4Protocol::DownTargetCallback6 Ipv6TunnelL4Protocol::GetDownTarget6 (void) co
   return (IpL4Protocol::DownTargetCallback6)NULL;
 }
 
-uint16_t Ipv6TunnelL4Protocol::AddTunnel(Ipv6Address remote, Ipv6Address local)
+uint16_t Ipv6TunnelL4Protocol::AddTunnel(Ipv6Address remote, uint8_t att, Ipv6Address local)
 {
-  NS_LOG_FUNCTION (this << remote << local);
+  NS_LOG_FUNCTION (this << remote << int (att) << local);
   
   // Search existing tunnel device
   TunnelMapI it = m_tunnelMap.find (remote);
@@ -249,13 +254,16 @@ uint16_t Ipv6TunnelL4Protocol::AddTunnel(Ipv6Address remote, Ipv6Address local)
       m_node->AddDevice (dev);
       m_tunnelMap.insert (std::pair<Ipv6Address, Ptr<TunnelNetDevice> > (remote, dev));
       dev->SetRemoteAddress(remote);
+      dev->SetAccessTechonologyType (att);
       dev->SetLocalAddress(local);
+      dev->SetReceiveCallback (m_receiveCallback);
     }
   else
     {
       dev = it->second;
     }
-    
+
+  NS_ASSERT (dev->GetAccessTechonologyType () == att);
   dev->IncreaseRefCount ();
 
   Ptr<Ipv6> ipv6 = m_node->GetObject<Ipv6> ();
@@ -288,7 +296,7 @@ void Ipv6TunnelL4Protocol::RemoveTunnel(Ipv6Address remote)
     }
 }
 
-uint16_t  Ipv6TunnelL4Protocol::ModifyTunnel(Ipv6Address remote, Ipv6Address newRemote, Ipv6Address local)
+uint16_t Ipv6TunnelL4Protocol::ModifyTunnel(Ipv6Address remote, Ipv6Address newRemote, uint8_t att, Ipv6Address local)
 {
   NS_LOG_FUNCTION (this << remote << newRemote << local);
   
@@ -297,7 +305,7 @@ uint16_t  Ipv6TunnelL4Protocol::ModifyTunnel(Ipv6Address remote, Ipv6Address new
   NS_ASSERT (dev->GetRefCount() > 0);
 	  
   RemoveTunnel (remote);
-  return AddTunnel (newRemote, local);
+  return AddTunnel (newRemote, att, local);
 }
 
 Ptr<TunnelNetDevice> Ipv6TunnelL4Protocol::GetTunnelDevice(Ipv6Address remote)
@@ -311,6 +319,17 @@ Ptr<TunnelNetDevice> Ipv6TunnelL4Protocol::GetTunnelDevice(Ipv6Address remote)
     }
   return 0;
 }
-  
+
+void
+Ipv6TunnelL4Protocol::SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback)
+{
+  NS_LOG_FUNCTION (this);
+  m_receiveCallback = receiveCallback;
+  for (TunnelMapI i = m_tunnelMap.begin (); i != m_tunnelMap.end (); i++)
+    {
+      i->second->SetReceiveCallback (receiveCallback);
+    }
+}
+
 } /* namespace ns3 */
 

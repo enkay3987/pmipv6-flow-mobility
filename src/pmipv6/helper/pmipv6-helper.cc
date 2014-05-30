@@ -52,6 +52,8 @@
 
 #include "ns3/ipv6-list-routing.h"
 #include "ns3/ipv6-static-source-routing.h"
+#include "ns3/ipv6-flow-routing.h"
+#include "ns3/ipv6-user-flow-routing-helper.h"
 
 #include "pmipv6-helper.h"
 #include <limits>
@@ -103,6 +105,14 @@ Pmipv6LmaHelper::Install (Ptr<Node> node) const
       lma->SetProfile (CreateObject<Pmipv6Profile> ());
     }
   lma->SetPrefixPool (Create<Pmipv6PrefixPool> (m_prefixBegin, m_prefixBeginLen));
+  // Attach flow routing protocol
+  Ptr<Ipv6> ipv6 = node->GetObject<Ipv6>();
+  NS_ASSERT_MSG(ipv6, "Install Internet-stack first before installing PMIPv6-related agents");
+  Ptr<Ipv6RoutingProtocol> routingProtocol = ipv6->GetRoutingProtocol();
+  Ptr<Ipv6ListRouting> listRouting = DynamicCast<Ipv6ListRouting> (routingProtocol);
+  NS_ASSERT_MSG( listRouting, "PMIPv6 needs Ipv6-list-routing protocol for operation");
+  Ptr<Ipv6FlowRouting> flowRouting = CreateObject<Ipv6FlowRouting>();
+  listRouting->AddRoutingProtocol(flowRouting, 10); // higher priority than static routing
   node->AggregateObject(lma);
 }
 
@@ -260,6 +270,30 @@ void Pmipv6ProfileHelper::AddProfile(Identifier mnId, Identifier mnLinkId, Ipv6A
     m_profile->AddMnLinkId (mnLinkId, entry);
   if (imsi != 0)
     m_profile->AddImsi (imsi, entry);
+}
+
+void Pmipv6MnHelper::Install (Ptr<Node> node)
+{
+  // Attach flow routing protocol
+  Ptr<Ipv6> ipv6 = node->GetObject<Ipv6>();
+  NS_ASSERT_MSG(ipv6, "Install Internet-stack first before installing flow mobility stack.");
+  Ptr<Ipv6RoutingProtocol> routingProtocol = ipv6->GetRoutingProtocol();
+  Ptr<Ipv6ListRouting> listRouting = DynamicCast<Ipv6ListRouting> (routingProtocol);
+  NS_ASSERT_MSG( listRouting, "PMIPv6 needs Ipv6-list-routing protocol for operation");
+  Ptr<Ipv6UserFlowRouting> ipv6UserFlowRouting = CreateObject<Ipv6UserFlowRouting>();
+  ipv6UserFlowRouting->SetupRxTrace (node);
+  listRouting->AddRoutingProtocol(ipv6UserFlowRouting, 10); // higher priority than static routing
+}
+
+Ptr<FlowBindingList> Pmipv6MnHelper::GetFlowBindingList (Ptr<Node> node)
+{
+  // Get Flow Binding List from the MN.
+  Ptr<Ipv6> ipv6 = node->GetObject<Ipv6> ();
+  Ipv6UserFlowRoutingHelper ipv6UserFlowRoutingHelper;
+  Ptr<Ipv6UserFlowRouting> ipv6UserFlowRouting = ipv6UserFlowRoutingHelper.GetUserFlowRouting (ipv6);
+  if (ipv6UserFlowRouting)
+    return ipv6UserFlowRouting->GetFlowBindingList ();
+  return 0;
 }
 
 } // namespace ns3

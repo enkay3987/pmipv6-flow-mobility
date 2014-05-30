@@ -162,7 +162,17 @@ void TunnelNetDevice::SetRemoteAddress(Ipv6Address raddr)
   
   m_remoteAddress = raddr;
 }
-   
+
+uint8_t TunnelNetDevice::GetAccessTechonologyType () const
+{
+  return m_att;
+}
+
+void TunnelNetDevice::SetAccessTechonologyType (uint8_t att)
+{
+  m_att = att;
+}
+
 void TunnelNetDevice::IncreaseRefCount()
 {
   NS_LOG_FUNCTION_NOARGS();
@@ -323,7 +333,12 @@ TunnelNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protoco
   uint8_t ttl = 64;
   
   m_macTxTrace (packet);
-  
+
+  if (m_receiveCallback.IsNull ())
+    NS_LOG_DEBUG ("Receive callback is NULL.");
+  else
+    m_receiveCallback (packet, m_remoteAddress);
+
   if (m_localAddress.IsAny())
     {
       Ipv6Header header;
@@ -470,5 +485,10 @@ bool TunnelNetDevice::IsBridge (void) const
   return false;
 }
 
-
+void
+TunnelNetDevice::SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback)
+{
+  NS_LOG_FUNCTION (this);
+  m_receiveCallback = receiveCallback;
+}
 } // namespace ns3

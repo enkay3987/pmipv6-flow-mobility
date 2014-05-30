@@ -122,11 +122,12 @@ public:
   virtual IpL4Protocol::DownTargetCallback GetDownTarget (void) const;
   virtual IpL4Protocol::DownTargetCallback6 GetDownTarget6 (void) const;
 
-  uint16_t AddTunnel(Ipv6Address remote, Ipv6Address local=Ipv6Address::GetZero());
+  uint16_t AddTunnel(Ipv6Address remote, uint8_t att = 0, Ipv6Address local=Ipv6Address::GetZero());
   void RemoveTunnel(Ipv6Address remote);
-  uint16_t ModifyTunnel(Ipv6Address remote, Ipv6Address newRemote, Ipv6Address local=Ipv6Address::GetZero());
+  uint16_t ModifyTunnel(Ipv6Address remote, Ipv6Address newRemote, uint8_t att = 0, Ipv6Address local=Ipv6Address::GetZero());
   Ptr<TunnelNetDevice> GetTunnelDevice(Ipv6Address remote);
   
+  void SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback);
 protected:
  
   /**
@@ -145,6 +146,8 @@ private:
   
   TunnelMap m_tunnelMap;
   
+  Callback<void, Ptr<Packet>, Ipv6Address> m_receiveCallback;
+
 };
 
 } /* namespace ns3 */

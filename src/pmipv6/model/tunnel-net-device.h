@@ -85,6 +85,9 @@ public:
   Ipv6Address GetRemoteAddress() const;
   void SetRemoteAddress(Ipv6Address raddr);
   
+  uint8_t GetAccessTechonologyType () const;
+  void SetAccessTechonologyType (uint8_t att);
+
   void IncreaseRefCount();
   void DecreaseRefCount();
   uint32_t GetRefCount() const;
@@ -130,6 +133,7 @@ public:
   virtual bool SupportsSendFrom () const;
   virtual bool IsBridge (void) const;
 
+  void SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback);
 protected:
 
   virtual void DoDispose (void);
@@ -154,7 +158,10 @@ private:
   
   Ipv6Address m_localAddress;
   Ipv6Address m_remoteAddress;
+  uint8_t m_att;
   uint32_t m_refCount;
+
+  Callback<void, Ptr<Packet>, Ipv6Address> m_receiveCallback;
 };
 
 }; // namespace ns3

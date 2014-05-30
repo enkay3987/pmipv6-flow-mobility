@@ -787,6 +787,7 @@ void Pmipv6Mag::SetupRegularRadvdInterface (BindingUpdateList::Entry *bule)
   uri->SetPhysicalAddress (phyId);
 
   std::list<Ipv6Address> hnpList = bule->GetHomeNetworkPrefixes ();
+  hnpList.reverse ();
   for (std::list<Ipv6Address>::iterator i = hnpList.begin (); i != hnpList.end (); i++)
     {
       Ptr<RadvdPrefix> prefix = Create<RadvdPrefix> ((*i), 64, 3, 5);

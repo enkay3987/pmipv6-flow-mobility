@@ -33,6 +33,7 @@
 #include "ns3/ipv4-l3-protocol.h"
 #include "ns3/ipv6-l3-protocol.h"
 #include "ns3/trace-helper.h"
+#include "ns3/flow-binding-list.h"
 
 #include "ns3/identifier.h"
 
@@ -98,6 +99,13 @@ protected:
 
 private:
   Ptr<Pmipv6Profile> m_profile;
+};
+
+class Pmipv6MnHelper
+{
+public:
+  void Install (Ptr<Node> node);
+  Ptr<FlowBindingList> GetFlowBindingList (Ptr<Node> node);
 };
 
 } // namespace ns3
