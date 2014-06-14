@@ -165,7 +165,7 @@ enum IpL4Protocol::RxStatus Ipv6TunnelL4Protocol::Receive (Ptr<Packet> packet, I
   if (m_receiveCallback.IsNull ())
     NS_LOG_DEBUG ("Receive callback is NULL.");
   else
-    m_receiveCallback (packet, header.GetSourceAddress ());
+    m_receiveCallback (packet, header.GetSourceAddress (), 2 /* uplink */);
 
   Ptr<Packet> p = packet->Copy();
   
@@ -321,7 +321,7 @@ Ptr<TunnelNetDevice> Ipv6TunnelL4Protocol::GetTunnelDevice(Ipv6Address remote)
 }
 
 void
-Ipv6TunnelL4Protocol::SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback)
+Ipv6TunnelL4Protocol::SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address, uint8_t> receiveCallback)
 {
   NS_LOG_FUNCTION (this);
   m_receiveCallback = receiveCallback;

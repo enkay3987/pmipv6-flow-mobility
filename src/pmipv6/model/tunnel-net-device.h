@@ -133,7 +133,7 @@ public:
   virtual bool SupportsSendFrom () const;
   virtual bool IsBridge (void) const;
 
-  void SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback);
+  void SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address, uint8_t> receiveCallback);
 protected:
 
   virtual void DoDispose (void);
@@ -161,7 +161,7 @@ private:
   uint8_t m_att;
   uint32_t m_refCount;
 
-  Callback<void, Ptr<Packet>, Ipv6Address> m_receiveCallback;
+  Callback<void, Ptr<Packet>, Ipv6Address, uint8_t> m_receiveCallback;
 };
 
 }; // namespace ns3

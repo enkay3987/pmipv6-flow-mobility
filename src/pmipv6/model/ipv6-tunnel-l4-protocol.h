@@ -127,7 +127,7 @@ public:
   uint16_t ModifyTunnel(Ipv6Address remote, Ipv6Address newRemote, uint8_t att = 0, Ipv6Address local=Ipv6Address::GetZero());
   Ptr<TunnelNetDevice> GetTunnelDevice(Ipv6Address remote);
   
-  void SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback);
+  void SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address, uint8_t> receiveCallback);
 protected:
  
   /**
@@ -146,7 +146,7 @@ private:
   
   TunnelMap m_tunnelMap;
   
-  Callback<void, Ptr<Packet>, Ipv6Address> m_receiveCallback;
+  Callback<void, Ptr<Packet>, Ipv6Address, uint8_t> m_receiveCallback;
 
 };
 

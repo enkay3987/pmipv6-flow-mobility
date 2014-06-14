@@ -337,7 +337,7 @@ TunnelNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protoco
   if (m_receiveCallback.IsNull ())
     NS_LOG_DEBUG ("Receive callback is NULL.");
   else
-    m_receiveCallback (packet, m_remoteAddress);
+    m_receiveCallback (packet, m_remoteAddress, 1 /*downlink*/);
 
   if (m_localAddress.IsAny())
     {
@@ -486,7 +486,7 @@ bool TunnelNetDevice::IsBridge (void) const
 }
 
 void
-TunnelNetDevice::SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address> receiveCallback)
+TunnelNetDevice::SetReceiveCallback (Callback<void, Ptr<Packet>, Ipv6Address, uint8_t> receiveCallback)
 {
   NS_LOG_FUNCTION (this);
   m_receiveCallback = receiveCallback;
