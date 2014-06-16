@@ -46,6 +46,8 @@
 #include <ns3/log.h>
 #include "ns3/ppp-header.h"
 
+#include "ns3/ipv6-flow-probe.h"
+
 NS_LOG_COMPONENT_DEFINE ("LteEnbNetDevice");
 
 namespace ns3 {
@@ -345,6 +347,17 @@ LteEnbNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protoco
     pppHeader.SetProtocol (0x0057);
   pCopy->AddHeader (pppHeader);
   m_snifferTrace (pCopy);
+
+  Ipv6FlowProbeTag ipv6FPTag;
+  if (packet->PeekPacketTag (ipv6FPTag))
+    {
+      NS_LOG_DEBUG ("Packet tag found: " << ipv6FPTag.GetPacketId ());
+      Ipv6Header ipv6H;
+      packet->RemoveHeader (ipv6H);
+      NS_LOG_DEBUG (ipv6H);
+      ipv6H.SetFlowLabel (ipv6FPTag.GetPacketId ());
+      packet->AddHeader (ipv6H);
+    }
   return m_rrc->SendData (packet);
 }
 
