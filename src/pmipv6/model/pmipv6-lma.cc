@@ -727,6 +727,10 @@ bool Pmipv6Lma::ModifyTunnelAndRouting (BindingCache::Entry *bce)
   Ptr<Ipv6> ipv6 = GetNode ()->GetObject<Ipv6> ();
   Ptr<Ipv6StaticRouting> staticRouting = staticRoutingHelper.GetStaticRouting (ipv6);
   
+  // Routing setup by flow routing protocol
+  Ipv6FlowRoutingHelper flowRoutingHelper;
+  Ptr<Ipv6FlowRouting> flowRouting = flowRoutingHelper.GetFlowRouting (ipv6);
+
   oldTunnelIf = bce->GetTunnelIfIndex ();
   uint16_t tunnelIf = th->ModifyTunnel (bce->GetOldProxyCoa (), bce->GetProxyCoa (), bce->GetAccessTechnologyType ());
   
@@ -740,6 +744,8 @@ bool Pmipv6Lma::ModifyTunnelAndRouting (BindingCache::Entry *bce)
           NS_LOG_LOGIC ("Modify Route " << (*i) << "/64 via " << (uint32_t)oldTunnelIf << " to " << tunnelIf);
           staticRouting->RemoveRoute ((*i), Ipv6Prefix (64), oldTunnelIf, (*i));
           staticRouting->AddNetworkRouteTo ((*i), Ipv6Prefix (64), tunnelIf);
+          flowRouting->RemoveRoute ((*i), Ipv6Prefix (64), oldTunnelIf, (*i));
+          flowRouting->AddNetworkRouteTo ((*i), Ipv6Prefix (64), tunnelIf);
         }
     }
   return true;

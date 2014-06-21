@@ -504,7 +504,6 @@ void Ipv6UserFlowRouting::HandlePacketRx (Ptr<const Packet> packet, Ptr<Ipv6> ip
         }
       entry->SetBindingIds (bindingIds);
       m_flowBindingList->AddFlowBindingEntry (entry);
-      m_flowBindingList->Print (std::cout);
     }
   else
     {
@@ -519,7 +518,6 @@ void Ipv6UserFlowRouting::HandlePacketRx (Ptr<const Packet> packet, Ptr<Ipv6> ip
           bindingIds.remove (rxDev);
           bindingIds.push_front (rxDev);
           entry->SetBindingIds (bindingIds);
-          m_flowBindingList->Print (std::cout);
         }
     }
 }

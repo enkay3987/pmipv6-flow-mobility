@@ -123,6 +123,10 @@ std::ostream& operator<< (std::ostream& os, const Identifier & identifier)
   os << std::setw(2) << (uint32_t)identifier.m_identifier[identifier.m_len-1];
   os.setf (std::ios::dec, std::ios::basefield);
   os.fill(' ');
+  char str[identifier.m_len + 1];
+  strncpy (str, (const char *) identifier.m_identifier, identifier.m_len);
+  str[identifier.m_len] = '\0';
+  os << " " << str << " ";
   return os;
 }
 
