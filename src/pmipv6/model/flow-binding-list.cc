@@ -154,7 +154,7 @@ void FlowBindingList::RemoveFlowBindingEntry (uint32_t flowID)
         {
           m_flowBindingList.erase (it);
           m_trafficSelectorMap.erase ((*it)->GetTrafficSelector ());
-          delete (*it);
+//          delete (*it);
           return;
         }
     }

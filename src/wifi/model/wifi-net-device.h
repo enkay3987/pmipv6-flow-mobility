@@ -109,10 +109,11 @@ public:
   virtual bool SendFrom (Ptr<Packet> packet, const Address& source, const Address& dest, uint16_t protocolNumber);
   virtual void SetPromiscReceiveCallback (PromiscReceiveCallback cb);
   virtual bool SupportsSendFrom (void) const;
+  void SetBndwdthCallback(Callback<void,Ptr<Packet>, Mac48Address> bndwdthTrack);
 protected:
    virtual void DoDispose (void);
    virtual void DoInitialize (void);
-  /**
+   /**
    * Receive a packet from the lower layer and pass the
    * packet up the stack.
    *
@@ -161,6 +162,7 @@ private:
   TracedCallback<> m_linkChanges;
   mutable uint16_t m_mtu;
   bool m_configComplete;
+  Callback<void,Ptr<Packet>, Mac48Address> m_bndwdthCallback;
 };
 
 } // namespace ns3

@@ -55,6 +55,7 @@ public:
   RegularWifiMac ();
   virtual ~RegularWifiMac ();
 
+  Ptr<MacLow> GetMacLow();
   /**
    * \param slotTime the slot duration
    */

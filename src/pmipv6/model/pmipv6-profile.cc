@@ -247,4 +247,20 @@ void Pmipv6Profile::Entry::SetLmaAddress(Ipv6Address lmaa)
   m_lmaAddress = lmaa;
 }
 
+Identifier Pmipv6Profile::LookupMnIdForIdentifier(Ipv6Address ipv6)
+{
+  MnIdProfileListI iter;
+  for(iter=m_mnIdProfileList.begin();iter!=m_mnIdProfileList.end();++iter)
+    {
+      std::list<Ipv6Address> ipv6List=iter->second->GetHomeNetworkPrefixes();
+      for (std::list<Ipv6Address>::iterator it=ipv6List.begin(); it != ipv6List.end(); ++it)
+        {
+          if((const Ipv6Address) *it == (const Ipv6Address) ipv6)
+            return iter->first;
+        }
+     }
+  Identifier id;
+  return id;
+}
+
 } /* namespace ns3 */

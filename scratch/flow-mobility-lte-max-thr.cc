@@ -89,7 +89,7 @@ void PacketSinkRxTrace (std::string context, Ptr<const Packet> packet, const Add
 {
   SeqTsHeader seqTs;
   packet->Copy ()->RemoveHeader (seqTs);
-  NS_LOG_UNCOND (context << " " << seqTs.GetTs () << "->" << Simulator::Now() << ": " << seqTs.GetSeq());
+  NS_LOG_DEBUG (context << " " << seqTs.GetTs () << "->" << Simulator::Now() << ": " << seqTs.GetSeq());
   recvBytes += packet->GetSize () + 8 + 20;
   lastRecvTime = Simulator::Now ();
 }
@@ -177,12 +177,14 @@ int
 main (int argc, char *argv[])
 {
   Config::SetDefault ("ns3::LteEnbRrc::SrsPeriodicity", UintegerValue (80));
+  Config::SetDefault ("ns3::LteEnbNetDevice::DlBandwidth", UintegerValue (100));
 
   uint16_t noOfUes = 40;
   uint32_t maxPackets = 1;
   double simTime = 15;
   double interPacketInterval = 100;
   bool enablePcap = false;
+  bool enableIpTraces = false;
 
   // Command line arguments
   CommandLine cmd;
@@ -191,10 +193,12 @@ main (int argc, char *argv[])
   cmd.AddValue ("interPacketInterval", "Inter packet interval [ms])", interPacketInterval);
   cmd.AddValue ("maxPackets", "The maximum number of packets to be sent by the application", maxPackets);
   cmd.AddValue ("enablePcap", "Set true to enable pcap capture", enablePcap);
+  cmd.AddValue ("enableIpTraces", "Set true to enable ip level traces", enableIpTraces);
   cmd.Parse(argc, argv);
 
   Mac48Address magMacAddress ("00:00:aa:bb:cc:dd");
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
+  lteHelper->SetSchedulerType ("ns3::PfFfMacScheduler");
   Ptr<PointToPointEpc6Pmipv6Helper> epcHelper = CreateObject<PointToPointEpc6Pmipv6Helper> (magMacAddress);
   lteHelper->SetEpcHelper (epcHelper);
   epcHelper->SetupS5Interface ();
@@ -299,9 +303,12 @@ main (int argc, char *argv[])
     }
 
   // Add IP traces to all nodes.
-  Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Rx", MakeCallback (&RxTrace));
-  Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Tx", MakeCallback (&TxTrace));
-  Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Drop", MakeCallback (&DropTrace));
+  if (enableIpTraces)
+    {
+      Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Rx", MakeCallback (&RxTrace));
+      Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Tx", MakeCallback (&TxTrace));
+      Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Drop", MakeCallback (&DropTrace));
+    }
 
   // Schedule Applications.
   Args args;
@@ -322,12 +329,19 @@ main (int argc, char *argv[])
   // Schedule print information
   Simulator::Schedule (Seconds (6), &PrintLteNodesInfo, epcHelper, enbNodes, ueNodes);
 
-  // Run simulation
-  Simulator::Stop(Seconds(simTime));
-  Simulator::Run();
+  NodeContainer flowMonNodes;
+  flowMonNodes.Add (remoteHost);
+  flowMonNodes.Add (ueNodes);
+  FlowMonitorHelper flowMonHelper;
+  Ptr<FlowMonitor> flowMon = flowMonHelper.Install (flowMonNodes);
 
+  // Run simulation
+  Simulator::Stop (Seconds(simTime));
+  Simulator::Run ();
+
+  flowMon->SerializeToXmlStream (std::cout, 2, false, false);
   NS_LOG_UNCOND ("Total Bytes Received: " << recvBytes << " lastTime: " << lastRecvTime);
-  NS_LOG_UNCOND ("Throughput: " << recvBytes * 8 / (lastRecvTime.GetSeconds () - firstSendTime.GetSeconds ()) * 1000 * 1000);
+  NS_LOG_UNCOND ("Throughput: " << recvBytes * 8 / ((lastRecvTime.GetSeconds () - firstSendTime.GetSeconds ()) * 1000 * 1000));
 
   Simulator::Destroy();
   return 0;

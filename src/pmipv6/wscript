@@ -37,10 +37,13 @@ def build(bld):
         'model/traffic-selector.cc',
         'model/ipv6-flow-routing.cc',
         'model/ipv6-user-flow-routing.cc',
+        'model/flow-manager.cc',
         'helper/ipv6-static-source-routing-helper.cc',
         'helper/pmipv6-helper.cc',
         'helper/ipv6-flow-routing-helper.cc',
         'helper/ipv6-user-flow-routing-helper.cc',
+        'model/flow-connection-manager.cc',
+        'helper/flow-connection-manager-helper.cc',
         ]
 
     module_test = bld.create_ns3_module_test_library('pmipv6')
@@ -79,10 +82,13 @@ def build(bld):
         'model/traffic-selector.h',
         'model/ipv6-flow-routing.h',
         'model/ipv6-user-flow-routing.h',
+        'model/flow-manager.h',
         'helper/ipv6-static-source-routing-helper.h',
         'helper/pmipv6-helper.h',
         'helper/ipv6-flow-routing-helper.h',
         'helper/ipv6-user-flow-routing-helper.h',
+        'model/flow-connection-manager.h',
+        'helper/flow-connection-manager-helper.h',
         ]
 
     if bld.env.ENABLE_EXAMPLES:

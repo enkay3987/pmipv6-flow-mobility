@@ -348,6 +348,9 @@ LteEnbNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protoco
   pCopy->AddHeader (pppHeader);
   m_snifferTrace (pCopy);
 
+  uint16_t cellId=GetCellId();
+  if(!m_lteBndwdthCallback.IsNull())
+    m_lteBndwdthCallback(packet,cellId);
   Ipv6FlowProbeTag ipv6FPTag;
   if (packet->PeekPacketTag (ipv6FPTag))
     {
@@ -391,5 +394,9 @@ LteEnbNetDevice::UpdateConfig (void)
     }
 }
 
+void LteEnbNetDevice::SetLteBndwdthCallback(Callback<void,Ptr<Packet>,uint16_t> bndwdthCallback)
+{
+  m_lteBndwdthCallback=bndwdthCallback;
+}
 
 } // namespace ns3

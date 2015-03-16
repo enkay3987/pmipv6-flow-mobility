@@ -364,8 +364,8 @@ main (int argc, char *argv[])
   NetDeviceContainer wifiApMagDevs;
   wifiApMagDevs.Add (wifiApMagDev);
   wifiApMagDev->SetAddress (magMacAddress);
-  ipv6h.SetBase (Ipv6Address ("b0::"), Ipv6Prefix (64));
-  Ipv6InterfaceContainer wifiMagApIpIfaces = ipv6h.Assign (wifiApMagDevs);
+//  ipv6h.SetBase (Ipv6Address ("b0::"), Ipv6Prefix (64));
+  Ipv6InterfaceContainer wifiMagApIpIfaces = ipv6h.AssignWithoutAddress (wifiApMagDevs);
 
   // Install mobility model on AP.
   Ptr<ListPositionAllocator> wifiApMagPositionAlloc = CreateObject<ListPositionAllocator> ();
@@ -452,7 +452,7 @@ main (int argc, char *argv[])
   PrintNodesInfo (nodes);
   Simulator::Schedule (Seconds (15), &PrintNodesInfo, nodes);
 
-  Simulator::Schedule (Seconds (20), &SwitchInterfaces, flowInterfaceList);
+//  Simulator::Schedule (Seconds (20), &SwitchInterfaces, flowInterfaceList);
 
   // Run simulation
   Simulator::Stop(Seconds(simTime));

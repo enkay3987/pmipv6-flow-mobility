@@ -753,4 +753,10 @@ void RegularWifiMac::SetNewHostCallback (Callback<void, Mac48Address, Mac48Addre
   m_newHostCallback = newHost;
 }
 
+Ptr<MacLow>
+RegularWifiMac::GetMacLow()
+{
+  return m_low;
+}
+
 } // namespace ns3

@@ -27,6 +27,7 @@
 #include "ns3/point-to-point-module.h"
 #include "ns3/config-store-module.h"
 #include "ns3/flow-monitor-module.h"
+#include "ns3/netanim-module.h"
 
 using namespace ns3;
 
@@ -38,7 +39,8 @@ NotifyConnectionEstablishedUe (std::string context,
                                uint16_t cellid,
                                uint16_t rnti)
 {
-  std::cout << context
+  std::cout << Simulator::Now ()
+            << context
             << " UE IMSI " << imsi
             << ": connected to CellId " << cellid
             << " with RNTI " << rnti
@@ -52,7 +54,8 @@ NotifyHandoverStartUe (std::string context,
                        uint16_t rnti,
                        uint16_t targetCellId)
 {
-  std::cout << context
+  std::cout << Simulator::Now ()
+            << context
             << " UE IMSI " << imsi
             << ": previously connected to CellId " << cellid
             << " with RNTI " << rnti
@@ -66,7 +69,8 @@ NotifyHandoverEndOkUe (std::string context,
                        uint16_t cellid,
                        uint16_t rnti)
 {
-  std::cout << context
+  std::cout << Simulator::Now ()
+            << context
             << " UE IMSI " << imsi
             << ": successful handover to CellId " << cellid
             << " with RNTI " << rnti
@@ -79,7 +83,8 @@ NotifyConnectionEstablishedEnb (std::string context,
                                 uint16_t cellid,
                                 uint16_t rnti)
 {
-  std::cout << context
+  std::cout << Simulator::Now ()
+            << context
             << " eNB CellId " << cellid
             << ": successful connection of UE with IMSI " << imsi
             << " RNTI " << rnti
@@ -93,7 +98,8 @@ NotifyHandoverStartEnb (std::string context,
                         uint16_t rnti,
                         uint16_t targetCellId)
 {
-  std::cout << context
+  std::cout << Simulator::Now ()
+            << context
             << " eNB CellId " << cellid
             << ": start handover of UE with IMSI " << imsi
             << " RNTI " << rnti
@@ -107,13 +113,23 @@ NotifyHandoverEndOkEnb (std::string context,
                         uint16_t cellid,
                         uint16_t rnti)
 {
-  std::cout << context
+  std::cout << Simulator::Now ()
+            << context
             << " eNB CellId " << cellid
             << ": completed handover of UE with IMSI " << imsi
             << " RNTI " << rnti
             << std::endl;
 }
 
+static void udpRx (std::string context, Ptr<const Packet> packet, const Address &address)
+{
+  static int prevSeq = -1;
+  SeqTsHeader seqTs;
+  packet->Copy ()->RemoveHeader (seqTs);
+  if (prevSeq + 1 != (int) seqTs.GetSeq ())
+    std::cout << prevSeq << " " << seqTs.GetTs () << "->" << Simulator::Now() << ": " << seqTs.GetSeq() << std::endl;
+  prevSeq = seqTs.GetSeq ();
+}
 
 /**
  * Sample simulation script for an automatic X2-based handover based on the RSRQ measures.
@@ -144,7 +160,7 @@ main (int argc, char *argv[])
   uint16_t numberOfEnbs = 2;
   uint16_t numBearersPerUe = 1;
   double distance = 500.0; // m
-  double yForUe = 500.0;   // m
+//  double yForUe = 500.0;   // m
   double speed = 20;       // m/s
   double simTime = (double)(numberOfEnbs + 1) * distance / speed; // 1500 m / 20 m/s = 75 secs
   double enbTxPowerDbm = 46.0;
@@ -161,18 +177,20 @@ main (int argc, char *argv[])
   cmd.AddValue ("simTime", "Total duration of the simulation (in seconds)", simTime);
   cmd.AddValue ("speed", "Speed of the UE (default = 20 m/s)", speed);
   cmd.AddValue ("enbTxPowerDbm", "TX power [dBm] used by HeNBs (defalut = 46.0)", enbTxPowerDbm);
-
+  cmd.AddValue ("distance", "Distance between eNBs", distance);
   cmd.Parse (argc, argv);
 
+//  if (speed != 0)
+//    simTime = (double)(numberOfEnbs + 1) * distance / speed;
 
   Ptr<LteHelper> lteHelper = CreateObject<LteHelper> ();
   Ptr<PointToPointEpcHelper> epcHelper = CreateObject<PointToPointEpcHelper> ();
   lteHelper->SetEpcHelper (epcHelper);
   lteHelper->SetSchedulerType ("ns3::RrFfMacScheduler");
-
+  lteHelper->SetPathlossModelType ("ns3::LogDistancePropagationLossModel");
   lteHelper->SetHandoverAlgorithmType ("ns3::A2A4RsrqHandoverAlgorithm");
   lteHelper->SetHandoverAlgorithmAttribute ("ServingCellThreshold",
-                                            UintegerValue (30));
+                                            UintegerValue (34));
   lteHelper->SetHandoverAlgorithmAttribute ("NeighbourCellOffset",
                                             UintegerValue (1));
 
@@ -200,7 +218,7 @@ main (int argc, char *argv[])
   Ipv4AddressHelper ipv4h;
   ipv4h.SetBase ("1.0.0.0", "255.0.0.0");
   Ipv4InterfaceContainer internetIpIfaces = ipv4h.Assign (internetDevices);
-  Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
+//  Ipv4Address remoteHostAddr = internetIpIfaces.GetAddress (1);
 
 
   // Routing of the Internet Host (towards the LTE network)
@@ -231,11 +249,17 @@ main (int argc, char *argv[])
 
   // Install Mobility Model in eNB
   Ptr<ListPositionAllocator> enbPositionAlloc = CreateObject<ListPositionAllocator> ();
-  for (uint16_t i = 0; i < numberOfEnbs; i++)
-    {
-      Vector enbPosition (distance * (i + 1), distance, 0);
-      enbPositionAlloc->Add (enbPosition);
-    }
+//  for (uint16_t i = 0; i < numberOfEnbs; i++)
+//    {
+//      Vector enbPosition;
+//      if (i == 2)
+//        enbPosition = Vector (750, 100, 0);
+//      else
+//        enbPosition = Vector (distance * (i + 1), distance, 0);
+//      enbPositionAlloc->Add (enbPosition);
+//    }
+  enbPositionAlloc->Add (Vector (distance, distance, 0));
+  enbPositionAlloc->Add (Vector (distance * 3, distance, 0));
   MobilityHelper enbMobility;
   enbMobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   enbMobility.SetPositionAllocator (enbPositionAlloc);
@@ -245,7 +269,8 @@ main (int argc, char *argv[])
   MobilityHelper ueMobility;
   ueMobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   ueMobility.Install (ueNodes);
-  ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, yForUe, 0));
+  ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, distance, 0));
+//  ueNodes.Get (0)->GetObject<MobilityModel> ()->SetPosition (Vector (0, yForUe, 0));
   ueNodes.Get (0)->GetObject<ConstantVelocityMobilityModel> ()->SetVelocity (Vector (speed, 0, 0));
 
   // Install LTE Devices in eNB and UEs
@@ -270,7 +295,7 @@ main (int argc, char *argv[])
   // Attach all UEs to the first eNodeB
   for (uint16_t i = 0; i < numberOfUes; i++)
     {
-      lteHelper->Attach (ueLteDevs.Get (i), enbLteDevs.Get (0));
+      lteHelper->Attach (ueLteDevs.Get (i)); // , enbLteDevs.Get (0));
     }
 
 
@@ -304,32 +329,25 @@ main (int argc, char *argv[])
 
           NS_LOG_LOGIC ("installing UDP DL app for UE " << u);
           UdpClientHelper dlClientHelper (ueIpIfaces.GetAddress (u), dlPort);
+          dlClientHelper.SetAttribute ("Interval", TimeValue (MilliSeconds (10)));
+          dlClientHelper.SetAttribute ("PacketSize", UintegerValue (800));
           clientApps.Add (dlClientHelper.Install (remoteHost));
           PacketSinkHelper dlPacketSinkHelper ("ns3::UdpSocketFactory",
                                                InetSocketAddress (Ipv4Address::GetAny (), dlPort));
           serverApps.Add (dlPacketSinkHelper.Install (ue));
-
-          NS_LOG_LOGIC ("installing UDP UL app for UE " << u);
-          UdpClientHelper ulClientHelper (remoteHostAddr, ulPort);
-          clientApps.Add (ulClientHelper.Install (ue));
-          PacketSinkHelper ulPacketSinkHelper ("ns3::UdpSocketFactory",
-                                               InetSocketAddress (Ipv4Address::GetAny (), ulPort));
-          serverApps.Add (ulPacketSinkHelper.Install (remoteHost));
+          Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx", MakeCallback(&udpRx));
 
           Ptr<EpcTft> tft = Create<EpcTft> ();
           EpcTft::PacketFilter dlpf;
           dlpf.localPortStart = dlPort;
           dlpf.localPortEnd = dlPort;
           tft->Add (dlpf);
-          EpcTft::PacketFilter ulpf;
-          ulpf.remotePortStart = ulPort;
-          ulpf.remotePortEnd = ulPort;
-          tft->Add (ulpf);
           EpsBearer bearer (EpsBearer::NGBR_VIDEO_TCP_DEFAULT);
           lteHelper->ActivateDedicatedEpsBearer (ueLteDevs.Get (u), bearer, tft);
 
           Time startTime = Seconds (startTimeSeconds->GetValue ());
           serverApps.Start (startTime);
+          startTime = Seconds (startTimeSeconds->GetValue () + 3);
           clientApps.Start (startTime);
 
         } // end for b
@@ -373,6 +391,9 @@ main (int argc, char *argv[])
   flowMonitorNodes.Add (remoteHost);
   FlowMonitorHelper flowMonitorHelper;
   Ptr<FlowMonitor> flowMonitor = flowMonitorHelper.Install (flowMonitorNodes);
+
+  AnimationInterface anim ("lena-x2-handover-measures.xml");
+
   Simulator::Stop (Seconds (simTime));
   Simulator::Run ();
 

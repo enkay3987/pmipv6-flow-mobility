@@ -62,7 +62,6 @@ void Ipv6AddressHelper::SetBase (Ipv6Address network, Ipv6Prefix prefix,
   NS_LOG_DEBUG (this << "Network: " << m_network << ", Prefix: " << m_prefix << ", Base: " << m_base);
 }
 
-
 Ipv6Address Ipv6AddressHelper::NewAddress (Address addr)
 {
   NS_LOG_FUNCTION (this << addr);

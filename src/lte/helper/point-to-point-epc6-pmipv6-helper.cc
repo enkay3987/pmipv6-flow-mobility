@@ -83,7 +83,7 @@ PointToPointEpc6Pmipv6Helper::GetTypeId (void)
                    MakeDataRateChecker ())
     .AddAttribute ("S1uLinkDelay", 
                    "The delay to be used for the next S1-U link to be created",
-                   TimeValue (Seconds (0)),
+                   TimeValue (MilliSeconds (1)),
                    MakeTimeAccessor (&PointToPointEpc6Pmipv6Helper::m_s1uLinkDelay),
                    MakeTimeChecker ())
     .AddAttribute ("S1uLinkMtu", 
@@ -98,7 +98,7 @@ PointToPointEpc6Pmipv6Helper::GetTypeId (void)
                    MakeDataRateChecker ())
     .AddAttribute ("S5LinkDelay",
                    "The delay to be used for the next S1-U link to be created",
-                   TimeValue (Seconds (0)),
+                   TimeValue (MilliSeconds (10)),
                    MakeTimeAccessor (&PointToPointEpc6Pmipv6Helper::m_s5LinkDelay),
                    MakeTimeChecker ())
     .AddAttribute ("S5LinkMtu",
@@ -155,6 +155,8 @@ PointToPointEpc6Pmipv6Helper::AddEnb (Ptr<Node> enb, Ptr<NetDevice> lteEnbNetDev
   enbSgwNodes.Add (m_sgw);
   enbSgwNodes.Add (enb);
   PointToPointHelper p2ph;
+  p2ph.SetQueue ("ns3::DropTailQueue",
+                  "MaxPackets", UintegerValue (1000));
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (m_s1uLinkDataRate));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (m_s1uLinkMtu));
   p2ph.SetChannelAttribute ("Delay", TimeValue (m_s1uLinkDelay));
@@ -220,6 +222,8 @@ PointToPointEpc6Pmipv6Helper::AddX2Interface (Ptr<Node> enb1, Ptr<Node> enb2)
   enbNodes.Add (enb1);
   enbNodes.Add (enb2);
   PointToPointHelper p2ph;
+  p2ph.SetQueue ("ns3::DropTailQueue",
+                  "MaxPackets", UintegerValue (1000));
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (m_x2LinkDataRate));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (m_x2LinkMtu));
   p2ph.SetChannelAttribute ("Delay", TimeValue (m_x2LinkDelay));
@@ -303,6 +307,8 @@ PointToPointEpc6Pmipv6Helper::SetupS5Interface ()
   // create a point to point link between the SGW and the PGW with
   // the corresponding new NetDevices on each side
   PointToPointHelper p2ph;
+  p2ph.SetQueue ("ns3::DropTailQueue",
+                  "MaxPackets", UintegerValue (1000));
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (m_s5LinkDataRate));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (m_s5LinkMtu));
   p2ph.SetChannelAttribute ("Delay", TimeValue (m_s5LinkDelay));

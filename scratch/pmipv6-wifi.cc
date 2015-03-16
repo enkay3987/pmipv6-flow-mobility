@@ -130,8 +130,11 @@ int main (int argc, char *argv[])
   Ipv6InterfaceContainer mag1Ifs;
   Ipv6InterfaceContainer mag2Ifs;
   Ipv6InterfaceContainer staIfs;
+
+  double simTime = 36;
   
   CommandLine cmd;
+  cmd.AddValue ("simtime", "Simulation time (in seconds).", simTime);
   cmd.Parse (argc, argv);
   
   SeedManager::SetSeed (123456);
@@ -230,8 +233,8 @@ int main (int argc, char *argv[])
   
   positionAlloc = CreateObject<ListPositionAllocator> ();
   
-  positionAlloc->Add (Vector (-50.0, 40.0, 0.0)); //MAG1AP
-  positionAlloc->Add (Vector (50.0, 40.0, 0.0));  //MAG2AP
+  positionAlloc->Add (Vector (-60.0, 40.0, 0.0)); //MAG1AP
+  positionAlloc->Add (Vector (60.0, 40.0, 0.0));  //MAG2AP
   
   mobility.SetPositionAllocator (positionAlloc);
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
@@ -285,7 +288,7 @@ int main (int argc, char *argv[])
   //setting station
   positionAlloc = CreateObject<ListPositionAllocator> ();
   
-  positionAlloc->Add (Vector (-50.0, 60.0, 0.0)); //STA
+  positionAlloc->Add (Vector (-180.0, 40.0, 0.0)); //STA
   
   mobility.SetPositionAllocator (positionAlloc);
   mobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");  
@@ -340,7 +343,7 @@ int main (int argc, char *argv[])
 
   NS_LOG_INFO ("Installing UDP client on CN");
   uint32_t packetSize = 1024;
-  uint32_t maxPacketCount = 20;
+  uint32_t maxPacketCount = 0xffff;
   Time interPacketInterval = MilliSeconds(1000);
   UdpClientHelper udpClient(Ipv6Address("3ffe:1:4:1:200:ff:fe00:c"), port);
   udpClient.SetAttribute ("Interval", TimeValue (interPacketInterval));
@@ -351,10 +354,10 @@ int main (int argc, char *argv[])
 
   serverApps.Start (Seconds (1.0));
   clientApps.Start (Seconds (1.5));
-  serverApps.Stop (Seconds (10.0));
-  clientApps.Stop (Seconds (10.0));
+  serverApps.Stop (Seconds (simTime));
+  clientApps.Stop (Seconds (simTime));
 
-  Simulator::Stop (Seconds (10.0));
+  Simulator::Stop (Seconds (simTime));
   Simulator::Run ();
   Simulator::Destroy ();
 

@@ -35,6 +35,7 @@
 #include "edca-txop-n.h"
 #include "snr-tag.h"
 
+
 NS_LOG_COMPONENT_DEFINE ("MacLow");
 
 #undef NS_LOG_APPEND_CONTEXT
@@ -341,8 +342,8 @@ MacLow::DoDispose (void)
   m_stationManager = 0;
   if (m_phyMacLowListener != 0)
     {
-	  delete m_phyMacLowListener;
-	  m_phyMacLowListener = 0;
+      delete m_phyMacLowListener;
+      m_phyMacLowListener = 0;
     }
 }
 
@@ -663,6 +664,40 @@ MacLow::ReceiveOk (Ptr<Packet> packet, double rxSnr, WifiMode txMode, WifiPreamb
    */
   WifiMacHeader hdr;
   packet->RemoveHeader (hdr);
+  bool toDs=hdr.IsToDs();
+  bool fromDs=hdr.IsFromDs();
+  Mac48Address address1=hdr.GetAddr1();
+  Mac48Address address2=hdr.GetAddr2();
+  Mac48Address address3=hdr.GetAddr3();
+  Mac48Address address4=hdr.GetAddr4();
+  Mac48Address bssid;
+
+
+  NS_LOG_DEBUG (" bssid="<< m_bssid<<",rxsnr="<<rxSnr<<",to ds="<<toDs<<",from ds="<<fromDs<<",address1="<<address1<<",address2="<<address2<<",address3="<<address3<<",address4="<<address4);
+  if(toDs==0 && fromDs==0)
+  {
+      bssid=address3;
+      NS_LOG_DEBUG (",bssid is="<<address3);
+  }
+
+  else if(toDs==0 && fromDs==1)
+  {
+      bssid=address2;
+      NS_LOG_DEBUG (",bssid is="<<address2);
+  }
+
+ else if(toDs==1 && fromDs==0)
+ {
+      bssid=address1;
+      NS_LOG_DEBUG (",bssid is="<<address1);
+  }
+
+
+ if(m_bssid==bssid)
+  if(!m_wifiSnrCallback.IsNull())
+   m_wifiSnrCallback (rxSnr,Simulator::Now());
+
+
 
   bool isPrevNavZero = IsNavZero ();
   NS_LOG_DEBUG ("duration/id=" << hdr.GetDuration ());
@@ -2074,6 +2109,11 @@ void
 MacLow::RegisterBlockAckListenerForAc (enum AcIndex ac, MacLowBlockAckEventListener *listener)
 {
   m_edcaListeners.insert (std::make_pair (ac, listener));
+}
+
+void MacLow::SetWifiSnrCallback(Callback<void,double,Time> wifiSnr)
+{
+  m_wifiSnrCallback=wifiSnr;
 }
 
 } // namespace ns3

@@ -28,11 +28,11 @@
 #include "ns3/pmipv6-module.h"
 #include "ns3/wifi-module.h"
 
-const std::string traceFilename = "pmipv6-flow-mobility-2";
+const std::string traceFilename = "pmipv6-flow-mobility-3";
 
 using namespace ns3;
 
-NS_LOG_COMPONENT_DEFINE ("Pmipv6FlowMobility2");
+NS_LOG_COMPONENT_DEFINE ("Pmipv6FlowMobility3");
 
 void PrintCompleteNodeInfo(Ptr<Node> node)
 {
@@ -79,9 +79,11 @@ void DropTrace (std::string context, const Ipv6Header & ipv6Header, Ptr<const Pa
   NS_LOG_DEBUG (context << " " << ipv6Header.GetSourceAddress () << " " << ipv6Header.GetDestinationAddress () << " " << dropReason << " " << interfaceId);
 }
 
-void PacketSinkRxTcpTrace (std::string context, Ptr<const Packet> packet, const Address &address)
+void PacketSinkRxTrace (std::string context, Ptr<const Packet> packet, const Address &address)
 {
-  NS_LOG_UNCOND (context << " " << Simulator::Now() << ": " << packet->GetSize ());
+  SeqTsHeader seqTs;
+  packet->Copy ()->RemoveHeader (seqTs);
+  NS_LOG_UNCOND (context << " " << seqTs.GetTs () << "->" << Simulator::Now() << ": " << seqTs.GetSeq());
 }
 
 struct Args
@@ -105,14 +107,17 @@ void InstallApplications (Args args, int n)
 
   for (int i = 0; i < n; i++, dlPort += 100)
     {
-      PacketSinkHelper dlPacketSinkHelper ("ns3::TcpSocketFactory", Inet6SocketAddress (Ipv6Address::GetAny (), dlPort));
+      PacketSinkHelper dlPacketSinkHelper ("ns3::UdpSocketFactory", Inet6SocketAddress (Ipv6Address::GetAny (), dlPort));
       serverApps.Add (dlPacketSinkHelper.Install (args.ueNode));
 
-      BulkSendHelper dlClient ("ns3::TcpSocketFactory", Inet6SocketAddress (args.ueIpIface.GetAddress (0, 1), dlPort));
-      dlClient.SetAttribute ("MaxBytes", UintegerValue (0));
+      UdpClientHelper dlClient (args.ueIpIface.GetAddress (0, 1), dlPort);
+      dlClient.SetAttribute ("Interval", TimeValue (MilliSeconds(args.interPacketInterval)));
+      dlClient.SetAttribute ("MaxPackets", UintegerValue (args.maxPackets));
+      dlClient.SetAttribute ("PacketSize", UintegerValue (100));
       clientApps.Add (dlClient.Install (args.remoteHost));
     }
-  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx", MakeCallback(&PacketSinkRxTcpTrace));
+
+  Config::Connect ("/NodeList/*/ApplicationList/*/$ns3::PacketSink/Rx", MakeCallback(&PacketSinkRxTrace));
   serverApps.Start (Seconds (1));
   clientApps.Start (Seconds (1));
 }
@@ -159,7 +164,7 @@ void CreateFlowInterfaceList (Ptr<FlowInterfaceList> flowInterfaceList)
 
   entry = new FlowInterfaceList::Entry (flowInterfaceList);
   entry->SetPriority (10);
-  ts.SetProtocol (6);
+  ts.SetProtocol (17);
   entry->SetTrafficSelector (ts);
   interfaceIds.push_back (4);
   interfaceIds.push_back (8);
@@ -168,7 +173,7 @@ void CreateFlowInterfaceList (Ptr<FlowInterfaceList> flowInterfaceList)
 
   entry = new FlowInterfaceList::Entry (flowInterfaceList);
   entry->SetPriority (15);
-  ts.SetProtocol (6);
+  ts.SetProtocol (17);
   ts.SetDestinationPort (2000);
   entry->SetTrafficSelector (ts);
   interfaceIds.clear ();
@@ -178,35 +183,30 @@ void CreateFlowInterfaceList (Ptr<FlowInterfaceList> flowInterfaceList)
   flowInterfaceList->AddFlowInterfaceEntry (entry);
 }
 
-void CreateFlowBindingList (Ptr<FlowBindingList> flowBindingList, Ptr<Node> node)
+void IncomingPacket (Ptr<Packet> packet, Ipv6Address magAddress, uint8_t downlink)
 {
-  FlowBindingList::Entry *entry;
-  TrafficSelector ts;
-  std::list<Ptr<NetDevice> > bindingIds;
-  Ptr<NetDevice> lteNetDevice = node->GetDevice (1);
-  Ptr<NetDevice> wifiNetDevice = node->GetDevice (2);
-
-  entry = new FlowBindingList::Entry (flowBindingList);
-  entry->SetPriority (1);
-  ts.SetProtocol (6);
-  entry->SetTrafficSelector (ts);
-  bindingIds.push_back (wifiNetDevice);
-  bindingIds.push_back (lteNetDevice);
-  entry->SetBindingIds (bindingIds);
-  flowBindingList->AddFlowBindingEntry (entry);
-}
-
-void SwitchInterfaces (Ptr<FlowInterfaceList> flowInterfaceList)
-{
-  NS_LOG_UNCOND ("Switch interfaces called.");
-  flowInterfaceList->RemoveFlowInterfaceEntry (2);
+  Ptr<Packet> packetCopy = packet->Copy ();
+  Ipv6Header ipv6Header;
+  packetCopy->RemoveHeader (ipv6Header);
+  if (ipv6Header.GetNextHeader () == 17)
+    {
+      UdpHeader udpHeader;
+      packetCopy->RemoveHeader (udpHeader);
+      NS_LOG_UNCOND ((downlink == 1 ? "Packet sent to MAG " : "Packet sent from MAG ") << magAddress << " UDP: " << ipv6Header.GetSourceAddress () << ":" << udpHeader.GetSourcePort () << "->" << ipv6Header.GetDestinationAddress () << ":" << udpHeader.GetDestinationPort () << " " << ipv6Header.GetPayloadLength () << " " << ipv6Header.GetSerializedSize ());
+    }
+  if (ipv6Header.GetNextHeader () == 6)
+    {
+      TcpHeader tcpHeader;
+      packetCopy->RemoveHeader (tcpHeader);
+      NS_LOG_UNCOND ((downlink == 1 ? "Packet sent to MAG " : "Packet sent from MAG ") << magAddress << " TCP: " << ipv6Header.GetSourceAddress () << ":" << tcpHeader.GetSourcePort () << "->" << ipv6Header.GetDestinationAddress () << ":" << tcpHeader.GetDestinationPort () << " " << ipv6Header.GetPayloadLength () << " " << ipv6Header.GetSerializedSize ());
+    }
 }
 
 /**
  * A MN having both LTE and Wifi NetDevices installed on it moves from a point where it is only connected
  * to the LTE network to where it senses a Wifi network. The MAG functionality is installed on the same
  * node as the WifiAp. This script demonstrates the flow mobility. The flow mobility functionality is installed
- * only on the LMA. Only downlink flows are run.
+ * only on the LMA. Only downlink flows are run. Flow tracker test.
  *
  * Node 0 - SGW
  * Node 1 - PGW
@@ -220,7 +220,7 @@ int
 main (int argc, char *argv[])
 {
   uint32_t maxPackets = 0xff;
-  double simTime = 30;
+  double simTime = 35;
   double interPacketInterval = 1000;
   bool enablePcap = false;
 
@@ -290,18 +290,14 @@ main (int argc, char *argv[])
   mobility.SetMobilityModel ("ns3::ConstantVelocityMobilityModel");
   mobility.Install (ueNode);
   Ptr<ConstantVelocityMobilityModel> cvm = ueNode->GetObject<ConstantVelocityMobilityModel> ();
-  cvm->SetVelocity (Vector (7.0, 0, 0)); //move to left to right 7.0m/s
-
-  // Install the IP stack on the UEs
-  internet.Install (ueNode);
+  cvm->SetVelocity (Vector (10.0, 0, 0)); //move to left to right 10.0m/s
 
   // Install LTE Devices to the UE and eNB nodes
   Ptr<NetDevice> enbLteDev = (lteHelper->InstallEnbDevice (NodeContainer (enbNode))).Get (0);
   Ptr<NetDevice> ueLteDev = (lteHelper->InstallUeDevice (NodeContainer (ueNode))).Get (0);
 
-  NS_LOG_UNCOND ("UE LTE Dev index: " << ueLteDev->GetIfIndex ());
-
-  // enable the UE interfaces to have link-local Ipv6 addresses.
+  // Install the IP stack on the UEs and enable the interfaces to have link-local Ipv6 addresses.
+  internet.Install (ueNode);
   ueLteDev->SetAddress (Mac48Address::Allocate ());
   Ipv6InterfaceContainer ueIpIface;
   ueIpIface = epcHelper->AssignWithoutAddress (ueLteDev);
@@ -311,22 +307,22 @@ main (int argc, char *argv[])
   lteHelper->Attach (ueLteDev, enbLteDev, false);
 
   // Setup Wifi network
-  Ptr<Node> wifiApMag;
-  wifiApMag = CreateObject<Node> ();
-  internet.Install (wifiApMag);
+  Ptr<Node> wifiApMag1;
+  wifiApMag1 = CreateObject<Node> ();
+  internet.Install (wifiApMag1);
   // Enable forwarding on the WifiApMag
-  Ptr<Ipv6> ipv6 = wifiApMag->GetObject<Ipv6> ();
+  Ptr<Ipv6> ipv6 = wifiApMag1->GetObject<Ipv6> ();
   ipv6->SetAttribute ("IpForward", BooleanValue (true));
 
   // Create p2p network between wifiApMag and and LMA (P-GW).
   p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Gb/s")));
   p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
   p2ph.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (100)));
-  NetDeviceContainer wifiApMagLmaDevs = p2ph.Install (wifiApMag, pgw);
+  NetDeviceContainer wifiApMagLmaDevs1 = p2ph.Install (wifiApMag1, pgw);
   ipv6h.SetBase ("aa::", "64");
-  Ipv6InterfaceContainer wifiApMagLmaIpIfaces = ipv6h.Assign (wifiApMagLmaDevs);
-  Ptr<Ipv6StaticRouting> wifiApMagStaticRouting = ipv6RoutingHelper.GetStaticRouting (wifiApMag->GetObject<Ipv6> ());
-  wifiApMagStaticRouting->SetDefaultRoute (wifiApMagLmaIpIfaces.GetAddress (1, 1), wifiApMagLmaIpIfaces.GetInterfaceIndex (0));
+  Ipv6InterfaceContainer wifiApMagLmaIpIfaces1 = ipv6h.Assign (wifiApMagLmaDevs1);
+  Ptr<Ipv6StaticRouting> wifiApMagStaticRouting = ipv6RoutingHelper.GetStaticRouting (wifiApMag1->GetObject<Ipv6> ());
+  wifiApMagStaticRouting->SetDefaultRoute (wifiApMagLmaIpIfaces1.GetAddress (1, 1), wifiApMagLmaIpIfaces1.GetInterfaceIndex (0));
 
   // Attach Wifi AP functionality on the wifiApMag node.
   Ssid ssid = Ssid ("IITH");
@@ -341,19 +337,49 @@ main (int argc, char *argv[])
                    "BeaconGeneration", BooleanValue (true),
                    "BeaconInterval", TimeValue (MicroSeconds (102400)),
                    "EnableBeaconJitter", BooleanValue (true));
-  Ptr<NetDevice> wifiApMagDev = (wifi.Install (wifiPhy, wifiMac, wifiApMag)).Get (0);
-  NetDeviceContainer wifiApMagDevs;
-  wifiApMagDevs.Add (wifiApMagDev);
-  wifiApMagDev->SetAddress (magMacAddress);
-  ipv6h.SetBase (Ipv6Address ("b0::"), Ipv6Prefix (64));
-  Ipv6InterfaceContainer wifiMagApIpIfaces = ipv6h.Assign (wifiApMagDevs);
+  Ptr<NetDevice> wifiApMagDev1 = (wifi.Install (wifiPhy, wifiMac, wifiApMag1)).Get (0);
+  NetDeviceContainer wifiApMagDevs1;
+  wifiApMagDevs1.Add (wifiApMagDev1);
+  wifiApMagDev1->SetAddress (magMacAddress);
+  Ipv6InterfaceContainer wifiMagApIpIfaces1 = ipv6h.AssignWithoutAddress (wifiApMagDevs1);
 
   // Install mobility model on AP.
   Ptr<ListPositionAllocator> wifiApMagPositionAlloc = CreateObject<ListPositionAllocator> ();
   wifiApMagPositionAlloc->Add (Vector(20, 0, 0));
   mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
   mobility.SetPositionAllocator (wifiApMagPositionAlloc);
-  mobility.Install (wifiApMag);
+  mobility.Install (wifiApMag1);
+
+  Ptr<Node> wifiApMag2;
+  wifiApMag2 = CreateObject<Node> ();
+  internet.Install (wifiApMag2);
+  // Enable forwarding on the WifiApMag
+  ipv6 = wifiApMag2->GetObject<Ipv6> ();
+  ipv6->SetAttribute ("IpForward", BooleanValue (true));
+
+  // Create p2p network between wifiApMag and and LMA (P-GW).
+  p2ph.SetDeviceAttribute ("DataRate", DataRateValue (DataRate ("100Gb/s")));
+  p2ph.SetDeviceAttribute ("Mtu", UintegerValue (1500));
+  p2ph.SetChannelAttribute ("Delay", TimeValue (MilliSeconds (100)));
+  NetDeviceContainer wifiApMagLmaDevs2 = p2ph.Install (wifiApMag2, pgw);
+  ipv6h.NewNetwork ();
+  Ipv6InterfaceContainer wifiApMagLmaIpIfaces2 = ipv6h.Assign (wifiApMagLmaDevs2);
+  wifiApMagStaticRouting = ipv6RoutingHelper.GetStaticRouting (wifiApMag2->GetObject<Ipv6> ());
+  wifiApMagStaticRouting->SetDefaultRoute (wifiApMagLmaIpIfaces2.GetAddress (1, 1), wifiApMagLmaIpIfaces2.GetInterfaceIndex (0));
+
+  // Attach Wifi AP functionality on the wifiApMag node.
+  Ptr<NetDevice> wifiApMagDev2 = (wifi.Install (wifiPhy, wifiMac, wifiApMag2)).Get (0);
+  NetDeviceContainer wifiApMagDevs2;
+  wifiApMagDevs2.Add (wifiApMagDev2);
+  wifiApMagDev2->SetAddress (magMacAddress);
+  Ipv6InterfaceContainer wifiMagApIpIfaces2 = ipv6h.AssignWithoutAddress (wifiApMagDevs2);
+
+  // Install mobility model on AP.
+  wifiApMagPositionAlloc = CreateObject<ListPositionAllocator> ();
+  wifiApMagPositionAlloc->Add (Vector(220, 0, 0));
+  mobility.SetMobilityModel ("ns3::ConstantPositionMobilityModel");
+  mobility.SetPositionAllocator (wifiApMagPositionAlloc);
+  mobility.Install (wifiApMag2);
 
   // Add Wifi functionality to UE.
   wifiMac.SetType ("ns3::StaWifiMac",
@@ -368,7 +394,7 @@ main (int argc, char *argv[])
   // Add Wifi Mag functionality to WifiMag node.
   Pmipv6MagHelper magHelper;
   magHelper.SetProfileHelper (epcHelper->GetPmipv6ProfileHelper ());
-  magHelper.Install (wifiApMag);
+  magHelper.Install (wifiApMag1);
 
   // Add PMIPv6 profiles.
   Ptr<Pmipv6ProfileHelper> profile = epcHelper->GetPmipv6ProfileHelper ();
@@ -385,20 +411,13 @@ main (int argc, char *argv[])
   // Add entries to Flow Interface List.
   CreateFlowInterfaceList (flowInterfaceList);
 
-  // Support flow mobility in MN.
-  Pmipv6MnHelper mnHelper;
-  mnHelper.Install (ueNode);
-  // Add entries to Flow Binding List
-  CreateFlowBindingList (mnHelper.GetFlowBindingList (ueNode), ueNode);
-
-
   // Enable PCAP traces
   if (enablePcap)
     {
       p2ph.EnablePcapAll (traceFilename);
       epcHelper->EnablePcap (traceFilename, ueLteDev);
       epcHelper->EnablePcap (traceFilename, enbLteDev);
-      wifiPhy.EnablePcap (traceFilename, wifiApMagDev);
+      wifiPhy.EnablePcap (traceFilename, wifiApMagDev1);
       wifiPhy.EnablePcap (traceFilename, ueWifiDev);
     }
 
@@ -406,6 +425,10 @@ main (int argc, char *argv[])
   Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Rx", MakeCallback (&RxTrace));
   Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Tx", MakeCallback (&TxTrace));
   Config::Connect ("/NodeList/*/$ns3::Ipv6L3Protocol/Drop", MakeCallback (&DropTrace));
+
+  // Add trace to tunnel protocol for LMA
+  Ptr<Ipv6TunnelL4Protocol> ipv6TunnelProtocol = pgw->GetObject<Ipv6TunnelL4Protocol> ();
+  ipv6TunnelProtocol->SetReceiveCallback (MakeCallback (&IncomingPacket));
 
   // Schedule Applications.
   Args args;
@@ -425,11 +448,10 @@ main (int argc, char *argv[])
   nodes.Add (enbNode);
   nodes.Add (ueNode);
   nodes.Add (remoteHost);
-  nodes.Add (wifiApMag);
+  nodes.Add (wifiApMag1);
   PrintNodesInfo (nodes);
   Simulator::Schedule (Seconds (15), &PrintNodesInfo, nodes);
-
-//  Simulator::Schedule (Seconds (20), &SwitchInterfaces, flowInterfaceList);
+  Simulator::Schedule (Seconds (30), &PrintNodesInfo, nodes);
 
   // Run simulation
   Simulator::Stop(Seconds(simTime));

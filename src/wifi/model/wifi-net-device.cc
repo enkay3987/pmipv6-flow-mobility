@@ -253,6 +253,8 @@ WifiNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolN
 {
   NS_ASSERT (Mac48Address::IsMatchingType (dest));
 
+  Address senderAddr = GetAddress();
+  Mac48Address senderMacAddress = Mac48Address::ConvertFrom (senderAddr);
   Mac48Address realTo = Mac48Address::ConvertFrom (dest);
 
   LlcSnapHeader llc;
@@ -261,6 +263,11 @@ WifiNetDevice::Send (Ptr<Packet> packet, const Address& dest, uint16_t protocolN
 
   m_mac->NotifyTx (packet);
   m_mac->Enqueue (packet, realTo);
+  if(!m_bndwdthCallback.IsNull())
+    {
+      m_bndwdthCallback(packet,senderMacAddress);
+    }
+
   return true;
 }
 Ptr<Node>
@@ -364,6 +371,11 @@ bool
 WifiNetDevice::SupportsSendFrom (void) const
 {
   return m_mac->SupportsSendFrom ();
+}
+
+void WifiNetDevice::SetBndwdthCallback(Callback<void,Ptr<Packet>, Mac48Address> bndwdthTrack)
+{
+  m_bndwdthCallback=bndwdthTrack;
 }
 
 } // namespace ns3

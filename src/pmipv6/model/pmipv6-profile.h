@@ -62,6 +62,7 @@ public:
   Entry *AddMnLinkId (Identifier id, Entry *entry = NULL);
   Entry *AddImsi (uint64_t imsi, Entry *entry = NULL);
   void Remove (Entry *entry);
+  Identifier LookupMnIdForIdentifier(Ipv6Address ipv6);
   void Flush();
   
   class Entry
@@ -84,7 +85,6 @@ public:
     std::list<Ipv6Address> GetHomeNetworkPrefixes() const;
     void SetHomeNetworkPrefixes(std::list<Ipv6Address> hnps);
     void AddHomeNetworkPrefix(Ipv6Address hnp);
-	
   protected:
   
   private:

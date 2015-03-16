@@ -43,6 +43,7 @@
 #include "block-ack-cache.h"
 #include "wifi-tx-vector.h"
 
+
 namespace ns3 {
 
 class WifiPhy;
@@ -124,7 +125,7 @@ public:
    * you can assume that the packet has not been passed
    * down the stack to the PHY.
    */
-  virtual void Cancel (void) = 0;	
+  virtual void Cancel (void) = 0;
 
   /** 
    * Invoked upon the end of the transmission of a frame that does not
@@ -677,6 +678,9 @@ public:
    * associated to this AC.
    */
   void RegisterBlockAckListenerForAc (enum AcIndex ac, MacLowBlockAckEventListener *listener);
+
+  void SetWifiSnrCallback(Callback<void,double,Time> wifiSnr);
+
 protected:
   /**
    * Return a TXVECTOR for the DATA frame given the destination.
@@ -1137,6 +1141,8 @@ private:
   typedef std::map<AcIndex, MacLowBlockAckEventListener*> QueueListeners;
   QueueListeners m_edcaListeners;
   bool m_ctsToSelfSupported;
+  Callback<void, double, Time> m_wifiSnrCallback;
+
 };
 
 } // namespace ns3

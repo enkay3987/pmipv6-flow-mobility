@@ -167,6 +167,8 @@ public:
    */
   void SetCsgIndication (bool csgIndication);
 
+  void SetLteBndwdthCallback(Callback<void,Ptr<Packet>,uint16_t> bndwdthCallback);
+
 protected:
   // inherited from Object
   virtual void DoInitialize (void);
@@ -210,6 +212,8 @@ private:
 
   uint16_t m_csgId;
   bool m_csgIndication;
+
+  Callback<void,Ptr<Packet>,uint16_t> m_lteBndwdthCallback;
 
 }; // end of class LteEnbNetDevice
 
